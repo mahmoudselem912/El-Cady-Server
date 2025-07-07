@@ -14,15 +14,15 @@ export class WalimahController {
 	@UseInterceptors(FileInterceptor('file'))
 	@Post('upload')
 	async upload(@Body() dto: UploadDto, @UploadedFile() file: MemoryStorageFile) {
-		const data = await this.walimahService.analyzeAndSave(file);
+		const data = await this.walimahService.analyzeAndSave(dto,file);
 		return successfulResponse(data);
 	}
 
-	@ApiConsumes('multipart/form-data')
-	@UseInterceptors(FileInterceptor('file'))
+	// @ApiConsumes('multipart/form-data')
+	// @UseInterceptors(FileInterceptor('file'))
 	@Post('add-user')
-	async addUser(@Body() dto: AddUserDto, @UploadedFile() file: MemoryStorageFile) {
-		const data = await this.walimahService.addUser(dto, file);
+	async addUser(@Body() dto: AddUserDto) {
+		const data = await this.walimahService.addUser(dto);
 		return successfulResponse(data);
 	}
 }

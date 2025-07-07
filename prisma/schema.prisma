@@ -19,7 +19,7 @@ model walimah_users {
   number     String
   city       String?
   email      String?
-  bill_image String
+  bill_image String?
   
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) @updatedAt

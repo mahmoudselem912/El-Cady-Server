@@ -2,9 +2,9 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import OpenAI from 'openai';
 import { MemoryStorageFile } from '@blazity/nest-file-fastify';
-import { CustomBadRequestException } from 'src/utils/custom.exceptions';
+import { CustomBadRequestException, CustomNotFoundException } from 'src/utils/custom.exceptions';
 import { handleException } from 'src/utils/error.handler';
-import { AddUserDto } from './dto';
+import { AddUserDto, UploadDto } from './dto';
 import { addPathToFiles, saveFilesOnServer } from 'src/utils/file.handler';
 import { ConfigService } from '@nestjs/config';
 
@@ -84,7 +84,7 @@ export class WalimahService {
 						],
 					},
 				],
-				max_tokens: 800,
+				// max_tokens: 800,
 			});
 
 			console.log(`response: ${response}`);
@@ -102,8 +102,18 @@ export class WalimahService {
 		}
 	}
 
-	async analyzeAndSave(file: MemoryStorageFile) {
+	async analyzeAndSave(dto: UploadDto, file: MemoryStorageFile) {
 		try {
+			const ExistinUser = await this.prisma.walimah_users.findFirst({
+				where: {
+					id: dto.user_id,
+				},
+			});
+
+			if (!ExistinUser) {
+				throw new CustomNotFoundException('User not found!');
+			}
+
 			if (!file.mimetype || !['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.mimetype)) {
 				throw new CustomBadRequestException('Invalid image type');
 			}
@@ -116,25 +126,14 @@ export class WalimahService {
 				throw new CustomBadRequestException(result.error.message);
 			}
 
-			console.log(result);
-
-			return result;
-		} catch (error) {
-			handleException(error, {});
-		}
-	}
-
-	async addUser(dto: AddUserDto, file: MemoryStorageFile) {
-		try {
-			const nestedFolder = `users/user-${dto.name.replaceAll(' ', '')}`;
+			const nestedFolder = `users/user-${ExistinUser.name.replaceAll(' ', '')}`;
 			const filesWithPathAndURl = await addPathToFiles([file], 'ElCady', nestedFolder);
 
-			const user = await this.prisma.walimah_users.create({
+			await this.prisma.walimah_users.update({
+				where: {
+					id: dto.user_id,
+				},
 				data: {
-					name: dto.name,
-					city: dto.city,
-					email: dto.email,
-					number: dto.number,
 					bill_image: filesWithPathAndURl[0].fileurl,
 				},
 			});
@@ -144,7 +143,7 @@ export class WalimahService {
 					await saveFilesOnServer(filesWithPathAndURl);
 				} catch (error) {
 					await this.prisma.walimah_users.delete({
-						where: { id: user.id },
+						where: { id: ExistinUser.id },
 					});
 
 					throw new InternalServerErrorException(
@@ -152,6 +151,35 @@ export class WalimahService {
 						(error as Error).message,
 					);
 				}
+
+			return result;
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
+
+	async addUser(dto: AddUserDto) {
+		try {
+			const ExistingUser = await this.prisma.walimah_users.findFirst({
+				where: {
+					number: dto.number,
+				},
+			});
+
+			if (ExistingUser) {
+				return { user: ExistingUser, type: 'exist' };
+			} else {
+				const user = await this.prisma.walimah_users.create({
+					data: {
+						name: dto.name,
+						city: dto.city,
+						email: dto.email,
+						number: dto.number,
+					},
+				});
+
+				return { user, type: 'new' };
+			}
 		} catch (error) {
 			handleException(error, dto);
 		}
