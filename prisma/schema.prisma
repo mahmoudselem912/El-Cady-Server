@@ -13,14 +13,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model client {
+  id           Int            @id @default(autoincrement())
+  name         String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
+  weBook_users weBook_users[]
+}
+
 model walimah_users {
-  id         Int      @id @default(autoincrement())
+  id         Int     @id @default(autoincrement())
   name       String
   number     String
   city       String?
   email      String?
   bill_image String?
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model weBook_users {
+  id        Int      @id @default(autoincrement())
+  name      String
+  text      String
+  image     String
+  client_id Int
+  client    client   @relation(fields: [client_id], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }

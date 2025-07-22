@@ -5,6 +5,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { PrismaService } from './modules/prisma/prisma.service';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { WalimahModule } from './modules/walimah/walimah.module';
+import { ClientsModule } from './modules/clients/clients.module';
+import { WebBookUsersModule } from './modules/web-book-users/web-book-users.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -22,6 +24,8 @@ const ENV = process.env.NODE_ENV;
 		]),
 		PrismaModule,
 		WalimahModule,
+		ClientsModule,
+		WebBookUsersModule,
 	],
 	controllers: [],
 	providers: [
