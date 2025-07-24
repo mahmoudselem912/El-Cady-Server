@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, UseInterceptors } from '@nestjs/common';
 import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { WebBookUsersService } from './web-book-users.service';
 import { FileInterceptor, MemoryStorageFile, UploadedFile } from '@blazity/nest-file-fastify';
@@ -22,6 +22,12 @@ export class WebBookUsersController {
     @Get('get-all-webBook-users')
     async GetAllUsers(@Query() dto: ClientIdentifier) {
         const data = await this.webBookUsersService.getAllUsers(dto)
+        return successfulResponse(data)
+    }
+
+    @Delete('delete-all-webBook-users')
+    async DeleteAllWebBookUsers() {
+        const data = await this.webBookUsersService.deleteAllUsers()
         return successfulResponse(data)
     }
 

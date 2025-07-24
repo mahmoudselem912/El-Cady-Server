@@ -79,4 +79,13 @@ export class WebBookUsersService {
             handleException(error, dto)
         }
     }
+
+    async deleteAllUsers() {
+        try {
+            const deletedUsers = await this.prisma.weBook_users.deleteMany()
+            return deletedUsers
+        } catch (error) {
+            handleException(error, {})
+        }
+    }
 }
