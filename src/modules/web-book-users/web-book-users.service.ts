@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AddWebBookUserDto } from './dto';
+import { AddWebBookUserDto, UserIdentifier } from './dto';
 import { handleException } from 'src/utils/error.handler';
 import { CustomNotFoundException } from 'src/utils/custom.exceptions';
 import { MemoryStorageFile } from '@blazity/nest-file-fastify';
@@ -86,6 +86,20 @@ export class WebBookUsersService {
             return deletedUsers
         } catch (error) {
             handleException(error, {})
+        }
+    }
+
+    async deleteUser(dto: UserIdentifier) {
+        try {
+            const deletedUser = await this.prisma.weBook_users.delete({
+                where: {
+                    id: dto.user_id
+                }
+            })
+
+            return deletedUser
+        } catch (error) {
+            handleException(error, dto)
         }
     }
 }
