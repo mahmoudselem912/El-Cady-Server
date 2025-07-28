@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { MemoryStorageFile } from '@blazity/nest-file-fastify';
 import { CustomBadRequestException, CustomNotFoundException } from 'src/utils/custom.exceptions';
 import { handleException } from 'src/utils/error.handler';
-import { AddUserDto, checkUserCodeDto, UploadDto } from './dto';
+import { AddUserDto, checkUserCodeDto, UploadDto, UserIdentifier } from './dto';
 import { addPathToFiles, saveFilesOnServer } from 'src/utils/file.handler';
 import { ConfigService } from '@nestjs/config';
 
@@ -223,6 +223,38 @@ export class WalimahService {
 			}
 
 			return 'Code is correct'
+		} catch (error) {
+			handleException(error, dto)
+		}
+	}
+
+	async getProfile(dto: UserIdentifier) {
+		try {
+			const ExistingUser = await this.prisma.walimah_users.findFirst({
+				where: {
+					id: dto.user_id
+				}
+			})
+
+			if (!ExistingUser) {
+				throw new CustomNotFoundException('User not found!')
+			}
+
+			const nominatedTimes = await this.prisma.walimah_users.count({
+				where: {
+					usedCode: ExistingUser.code
+				}
+			})
+			const userCoupons = await this.prisma.user_Coupons.findMany({
+				where: {
+					user_id: dto.user_id
+				}
+			})
+			return {
+				user: ExistingUser,
+				nominatedTimes,
+				userCoupons
+			}
 		} catch (error) {
 			handleException(error, dto)
 		}

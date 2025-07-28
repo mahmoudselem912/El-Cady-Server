@@ -2,19 +2,19 @@ import { Body, Controller, Get, Post, Query, UseInterceptors } from '@nestjs/com
 import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { WalimahService } from './walimah.service';
 import { FileInterceptor, MemoryStorageFile, UploadedFile } from '@blazity/nest-file-fastify';
-import { AddUserDto, checkUserCodeDto, UploadDto } from './dto';
+import { AddUserDto, checkUserCodeDto, UploadDto, UserIdentifier } from './dto';
 import { successfulResponse } from 'src/utils/response.handler';
 
 @Controller('walimah')
 @ApiTags('Walimah')
 export class WalimahController {
-	constructor(private readonly walimahService: WalimahService) {}
+	constructor(private readonly walimahService: WalimahService) { }
 
 	@ApiConsumes('multipart/form-data')
 	@UseInterceptors(FileInterceptor('file'))
 	@Post('upload')
 	async upload(@Body() dto: UploadDto, @UploadedFile() file: MemoryStorageFile) {
-		const data = await this.walimahService.analyzeAndSave(dto,file);
+		const data = await this.walimahService.analyzeAndSave(dto, file);
 		return successfulResponse(data);
 	}
 
@@ -29,6 +29,12 @@ export class WalimahController {
 	@Get('check-user-code')
 	async CheckUserCode(@Query() dto: checkUserCodeDto) {
 		const data = await this.walimahService.checkUserCode(dto)
+		return successfulResponse(data)
+	}
+
+	@Get('get-profile')
+	async GetProfile(@Query() dto: UserIdentifier) {
+		const data = await this.walimahService.getProfile(dto)
 		return successfulResponse(data)
 	}
 

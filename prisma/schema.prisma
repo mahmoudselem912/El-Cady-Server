@@ -22,16 +22,17 @@ model client {
 }
 
 model walimah_users {
-  id         Int      @id @default(autoincrement())
-  name       String
-  number     String
-  city       String?
-  email      String?
-  bill_image String?
-  code       String?
-  usedCode   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+  id           Int            @id @default(autoincrement())
+  name         String
+  number       String
+  city         String?
+  email        String?
+  bill_image   String?
+  code         String?
+  usedCode     String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
+  user_Coupons user_Coupons[]
 }
 
 model weBook_users {
@@ -43,4 +44,22 @@ model weBook_users {
   client    client   @relation(fields: [client_id], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Coupons {
+  id           Int            @id @default(autoincrement())
+  name         String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
+  user_Coupons user_Coupons[]
+}
+
+model user_Coupons {
+  id        Int           @id @default(autoincrement())
+  user_id   Int
+  user      walimah_users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  coupon_id Int
+  coupon    Coupons       @relation(fields: [coupon_id], references: [id])
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @default(now()) @updatedAt
 }
