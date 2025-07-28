@@ -239,12 +239,15 @@ export class WalimahService {
 			if (!ExistingUser) {
 				throw new CustomNotFoundException('User not found!')
 			}
+			let nominatedTimes = 0
+			if (ExistingUser.code) {
+				nominatedTimes = await this.prisma.walimah_users.count({
+					where: {
+						usedCode: ExistingUser.code
+					}
+				})
+			}
 
-			const nominatedTimes = await this.prisma.walimah_users.count({
-				where: {
-					usedCode: ExistingUser.code
-				}
-			})
 			const userCoupons = await this.prisma.user_Coupons.findMany({
 				where: {
 					user_id: dto.user_id
