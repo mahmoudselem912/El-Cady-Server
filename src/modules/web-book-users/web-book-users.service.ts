@@ -11,6 +11,7 @@ import { ClientIdentifier } from '../clients/dto';
 export class WebBookUsersService {
     constructor(private readonly prisma: PrismaService) { }
 
+    
     async addWebBookUser(dto: AddWebBookUserDto, file: MemoryStorageFile) {
         try {
             const ExistingClient = await this.prisma.client.findFirst({

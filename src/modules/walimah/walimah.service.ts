@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { MemoryStorageFile } from '@blazity/nest-file-fastify';
 import { CustomBadRequestException, CustomNotFoundException } from 'src/utils/custom.exceptions';
 import { handleException } from 'src/utils/error.handler';
-import { AddUserDto, UploadDto } from './dto';
+import { AddUserDto, checkUserCodeDto, UploadDto } from './dto';
 import { addPathToFiles, saveFilesOnServer } from 'src/utils/file.handler';
 import { ConfigService } from '@nestjs/config';
 
@@ -33,6 +33,27 @@ export class WalimahService {
 				},
 			};
 		}
+	}
+	private async generateUniqueUserCode(): Promise<string> {
+		const prefix = 'WLM';
+		const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+		let code: string;
+		let isUnique = false;
+
+		while (!isUnique) {
+			const number = Math.floor(100 + Math.random() * 900); // 100 - 999
+			const letter = characters.charAt(Math.floor(Math.random() * characters.length));
+			code = `${prefix}${number}${letter}`;
+
+			const existingUser = await this.prisma.walimah_users.findFirst({
+				where: { code },
+			});
+
+			isUnique = !existingUser;
+		}
+
+		return code;
 	}
 
 	private async useOpenAI(base64Image: string) {
@@ -169,12 +190,16 @@ export class WalimahService {
 			if (ExistingUser) {
 				return { user: ExistingUser, type: 'exist' };
 			} else {
+				const code = await this.generateUniqueUserCode()
+
 				const user = await this.prisma.walimah_users.create({
 					data: {
 						name: dto.name,
 						city: dto.city,
 						email: dto.email,
 						number: dto.number,
+						code: code,
+						usedCode: dto.code
 					},
 				});
 
@@ -184,4 +209,23 @@ export class WalimahService {
 			handleException(error, dto);
 		}
 	}
+
+	async checkUserCode(dto: checkUserCodeDto) {
+		try {
+			const ExistingUser = await this.prisma.walimah_users.findFirst({
+				where: {
+					code: dto.code
+				}
+			})
+
+			if (!ExistingUser) {
+				throw new CustomNotFoundException('Code not found!')
+			}
+
+			return 'Code is correct'
+		} catch (error) {
+			handleException(error, dto)
+		}
+	}
+
 }

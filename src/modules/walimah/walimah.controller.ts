@@ -1,8 +1,8 @@
-import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseInterceptors } from '@nestjs/common';
 import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { WalimahService } from './walimah.service';
 import { FileInterceptor, MemoryStorageFile, UploadedFile } from '@blazity/nest-file-fastify';
-import { AddUserDto, UploadDto } from './dto';
+import { AddUserDto, checkUserCodeDto, UploadDto } from './dto';
 import { successfulResponse } from 'src/utils/response.handler';
 
 @Controller('walimah')
@@ -25,4 +25,11 @@ export class WalimahController {
 		const data = await this.walimahService.addUser(dto);
 		return successfulResponse(data);
 	}
+
+	@Get('check-user-code')
+	async CheckUserCode(@Query() dto: checkUserCodeDto) {
+		const data = await this.walimahService.checkUserCode(dto)
+		return successfulResponse(data)
+	}
+
 }

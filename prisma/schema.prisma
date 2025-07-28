@@ -22,15 +22,16 @@ model client {
 }
 
 model walimah_users {
-  id         Int     @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   name       String
   number     String
   city       String?
   email      String?
   bill_image String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  code       String?
+  usedCode   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
 
 model weBook_users {

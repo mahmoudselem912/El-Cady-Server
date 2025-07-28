@@ -22,6 +22,11 @@ export class AddUserDto {
 	@IsOptional()
 	email: string;
 
+	@ApiProperty({ example: 'code', required: false })
+	@IsString()
+	@IsOptional()
+	code: string;
+
 	@ApiProperty({ type: 'string', format: 'binary' })
 	file: any;
 }
