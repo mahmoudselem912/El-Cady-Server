@@ -38,4 +38,9 @@ export class WalimahController {
 		return successfulResponse(data)
 	}
 
+	@Post('assign-codes')
+	async AssignCodes() {
+		const data = await this.walimahService.assignCodes()
+		return successfulResponse(data)
+	}
 }

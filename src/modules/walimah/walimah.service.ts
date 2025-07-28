@@ -263,4 +263,29 @@ export class WalimahService {
 		}
 	}
 
+	async assignCodes() {
+		try {
+			const usersWithoutCode = await this.prisma.walimah_users.findMany({
+				where: {
+					code: null,
+				},
+			});
+
+			for (const user of usersWithoutCode) {
+				const uniqueCode = await this.generateUniqueUserCode();
+
+				await this.prisma.walimah_users.update({
+					where: { id: user.id },
+					data: { code: uniqueCode },
+				});
+			}
+
+			return {
+				message: `Codes assigned to ${usersWithoutCode.length} users.`,
+			};
+		} catch (error) {
+			handleException(error, {})
+		}
+	}
+
 }
