@@ -251,6 +251,9 @@ export class WalimahService {
 			const userCoupons = await this.prisma.user_Coupons.findMany({
 				where: {
 					user_id: dto.user_id
+				},
+				include:{
+					coupon: true
 				}
 			})
 			return {
