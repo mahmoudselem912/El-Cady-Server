@@ -63,3 +63,11 @@ model user_Coupons {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @default(now()) @updatedAt
 }
+
+model swapPhotos {
+  id        Int      @id @default(autoincrement())
+  image     String
+  uuid      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}

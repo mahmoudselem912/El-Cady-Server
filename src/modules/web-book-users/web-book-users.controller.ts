@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, Post, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, Res, UseInterceptors } from '@nestjs/common';
 import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { WebBookUsersService } from './web-book-users.service';
-import { FileInterceptor, MemoryStorageFile, UploadedFile } from '@blazity/nest-file-fastify';
-import { AddWebBookUserDto, UserIdentifier } from './dto';
+import { FileInterceptor, FilesInterceptor, MemoryStorageFile, UploadedFile, UploadedFiles } from '@blazity/nest-file-fastify';
+import { AddWebBookUserDto, SwapPhotoDto, UploadSwapPhotosDto, UserIdentifier } from './dto';
 import { successfulResponse } from 'src/utils/response.handler';
 import { ClientIdentifier } from '../clients/dto';
+import { Response } from 'express';
 
 @Controller('web-book-users')
 @ApiTags('Web-Book-Users')
@@ -36,5 +37,29 @@ export class WebBookUsersController {
         const data = await this.webBookUsersService.deleteUser(dto)
         return successfulResponse(data)
     }
+
+
+    @ApiConsumes('multipart/form-data')
+    @UseInterceptors(FilesInterceptor('files', 100))
+    @Post('Upload-swap-photos')
+    async UploadSwapPhotos(@Body() dto: UploadSwapPhotosDto, @UploadedFiles() files: MemoryStorageFile[],) {
+        const data = await this.webBookUsersService.uploadSwapPhotos(dto, files)
+        return successfulResponse(data)
+    }
+
+    @Get('get-all-swap-photos')
+    async GetAllSwapPhotos() {
+        const data = await this.webBookUsersService.getAllSwapPhotos()
+        return successfulResponse(data)
+    }
+
+    @ApiConsumes('multipart/form-data')
+    @UseInterceptors(FileInterceptor('image'))
+    @Post('swap-photo')
+    async SwapPhoto(@Body() dto: SwapPhotoDto, @UploadedFile() file: MemoryStorageFile) {
+        const data = await this.webBookUsersService.swapPhoto(dto, file)
+        return successfulResponse(data)
+    }
+
 
 }
