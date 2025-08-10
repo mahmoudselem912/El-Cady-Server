@@ -7,6 +7,7 @@ import { PrismaModule } from './modules/prisma/prisma.module';
 import { WalimahModule } from './modules/walimah/walimah.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { WebBookUsersModule } from './modules/web-book-users/web-book-users.module';
+import { CountryModule } from './modules/country/country.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -26,6 +27,7 @@ const ENV = process.env.NODE_ENV;
 		WalimahModule,
 		ClientsModule,
 		WebBookUsersModule,
+		CountryModule,
 	],
 	controllers: [],
 	providers: [

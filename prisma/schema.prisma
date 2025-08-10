@@ -19,6 +19,7 @@ model client {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @default(now()) @updatedAt
   weBook_users weBook_users[]
+  swapPhotos   swapPhotos[]
 }
 
 model walimah_users {
@@ -65,9 +66,34 @@ model user_Coupons {
 }
 
 model swapPhotos {
-  id        Int      @id @default(autoincrement())
-  image     String
-  uuid      String
+  id         Int      @id @default(autoincrement())
+  image      String
+  uuid       String
+  country_id Int?
+  country    country? @relation(fields: [country_id], references: [id], onDelete: Cascade)
+
+  client_id Int?
+  client    client?  @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  gender    Gender   @default(Male)
+  body      Body     @default(Thin)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model country {
+  id         Int          @id @default(autoincrement())
+  title      String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @default(now()) @updatedAt
+  swapPhotos swapPhotos[]
+}
+
+enum Gender {
+  Male
+  Female
+}
+
+enum Body {
+  Thin
+  NotThin
 }

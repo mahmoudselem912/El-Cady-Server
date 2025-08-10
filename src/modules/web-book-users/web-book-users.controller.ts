@@ -53,6 +53,12 @@ export class WebBookUsersController {
         return successfulResponse(data)
     }
 
+    @Delete('delete-all-swap-photos')
+    async DeleteAllSwapPhotos() {
+        const data = await this.webBookUsersService.deleteAllSwapPhotos()
+        return successfulResponse(data)
+    }
+
     @ApiConsumes('multipart/form-data')
     @UseInterceptors(FileInterceptor('image'))
     @Post('swap-photo')

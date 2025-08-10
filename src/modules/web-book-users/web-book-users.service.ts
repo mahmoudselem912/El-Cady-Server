@@ -112,6 +112,26 @@ export class WebBookUsersService {
 
     async uploadSwapPhotos(dto: UploadSwapPhotosDto, files: MemoryStorageFile[]) {
         try {
+            const ExistingCountry = await this.prisma.country.findFirst({
+                where: {
+                    id: dto.country_id,
+                }
+            })
+
+            if (!ExistingCountry) {
+                throw new CustomNotFoundException('Country not found!')
+            }
+
+            const ExistingClient = await this.prisma.client.findFirst({
+                where: {
+                    id: dto.client_id,
+                }
+            })
+
+            if (!ExistingClient) {
+                throw new CustomNotFoundException('Client not found!')
+            }
+
             const id: string = uuidv4();
             const nestedFolder = `swapPhotos/swapPhoto`;
 
@@ -119,6 +139,10 @@ export class WebBookUsersService {
             const swapPhotos = await this.prisma.swapPhotos.createMany({
                 data: filesWithPathAndURl.map((file, index) => ({
                     image: file.fileurl,
+                    gender: dto.gender,
+                    body: dto.body,
+                    country_id: ExistingCountry.id,
+                    client_id: ExistingClient.id,
                     uuid: id
                 })),
             });
@@ -199,8 +223,8 @@ export class WebBookUsersService {
     async swapPhoto(dto: SwapPhotoDto, file: MemoryStorageFile) {
         try {
             // 1. Get target image URL from DB
-            const targetPhoto = await this.prisma.swapPhotos.findUnique({
-                where: { id: dto.photo_id },
+            const targetPhoto = await this.prisma.swapPhotos.findFirst({
+                where: { country_id: dto.country_id, gender: dto.gender, body: dto.body, client_id: dto.client_id },
             });
 
             if (!targetPhoto) {
@@ -228,6 +252,15 @@ export class WebBookUsersService {
             return dataUrl
         } catch (error) {
             handleException(error, dto)
+        }
+    }
+
+    async deleteAllSwapPhotos() {
+        try {
+            const deletedSwapPhotos = await this.prisma.swapPhotos.deleteMany()
+            return deletedSwapPhotos
+        } catch (error) {
+            handleException(error, {})
         }
     }
 }
