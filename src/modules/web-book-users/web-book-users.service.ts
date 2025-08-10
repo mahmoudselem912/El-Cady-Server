@@ -224,7 +224,12 @@ export class WebBookUsersService {
         try {
             // 1. Get target image URL from DB
             const targetPhoto = await this.prisma.swapPhotos.findFirst({
-                where: { country_id: dto.country_id, gender: dto.gender, body: dto.body, client_id: dto.client_id },
+                where: {
+                    country_id: dto.country_id,
+                    gender: dto.gender,
+                    body: dto.gender === 'Female' ? undefined : dto.body,
+                    client_id: dto.client_id,
+                },
             });
 
             if (!targetPhoto) {
