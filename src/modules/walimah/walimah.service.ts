@@ -313,4 +313,13 @@ export class WalimahService {
 			handleException(error, {});
 		}
 	}
+
+	async deleteAllWalimahImages() {
+		try {
+			const deletedImages = await this.prisma.walimah_users_bills.deleteMany();
+			return deletedImages;
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
 }

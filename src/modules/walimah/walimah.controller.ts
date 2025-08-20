@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, UseInterceptors } from '@nestjs/common';
 import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { WalimahService } from './walimah.service';
 import { FileInterceptor, MemoryStorageFile, UploadedFile } from '@blazity/nest-file-fastify';
@@ -41,6 +41,12 @@ export class WalimahController {
 	@Post('assign-codes')
 	async AssignCodes() {
 		const data = await this.walimahService.assignCodes()
+		return successfulResponse(data)
+	}
+
+	@Delete('delete-all-walimah-images')
+	async DeleteAllWalimahImages() {
+		const data = await this.walimahService.deleteAllWalimahImages()
 		return successfulResponse(data)
 	}
 }
