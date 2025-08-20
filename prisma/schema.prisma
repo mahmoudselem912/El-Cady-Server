@@ -23,17 +23,28 @@ model client {
 }
 
 model walimah_users {
-  id           Int            @id @default(autoincrement())
-  name         String
-  number       String
-  city         String?
-  email        String?
-  bill_image   String?
-  code         String?
-  usedCode     String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @default(now()) @updatedAt
-  user_Coupons user_Coupons[]
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  number              String
+  city                String?
+  email               String?
+  bill_image          String?
+  code                String?
+  usedCode            String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @default(now()) @updatedAt
+  user_Coupons        user_Coupons[]
+  walimah_users_bills walimah_users_bills[]
+}
+
+model walimah_users_bills {
+  id              Int           @id @default(autoincrement())
+  walimah_user_id Int
+  walimah_user    walimah_users @relation(fields: [walimah_user_id], references: [id], onDelete: Cascade)
+  bill_number     String
+  bill_image      String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now()) @updatedAt
 }
 
 model weBook_users {

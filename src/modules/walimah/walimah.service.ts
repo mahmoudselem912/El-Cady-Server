@@ -162,11 +162,22 @@ export class WalimahService {
 			const nestedFolder = `users/user-${ExistinUser.name.replaceAll(' ', '')}`;
 			const filesWithPathAndURl = await addPathToFiles([file], 'ElCady', nestedFolder);
 
-			await this.prisma.walimah_users.update({
-				where: {
-					id: dto.user_id,
-				},
+			if (result.hasRice.value) {
+				const ExistingBill = await this.prisma.walimah_users_bills.findFirst({
+					where: {
+						bill_number: result.invoiceNumber,
+					},
+				});
+
+				if (ExistingBill) {
+					throw new CustomBadRequestException('هذه الفاتورة تم رفعها بالفعل');
+				}
+			}
+
+			await this.prisma.walimah_users_bills.create({
 				data: {
+					walimah_user_id: dto.user_id,
+					bill_number: result?.invoiceNumber,
 					bill_image: filesWithPathAndURl[0].fileurl,
 				},
 			});
