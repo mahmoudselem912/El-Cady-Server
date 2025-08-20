@@ -61,6 +61,9 @@ model weBook_users {
 model Coupons {
   id           Int            @id @default(autoincrement())
   name         String
+  precentage   String
+  startDate    DateTime
+  endDate      DateTime
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @default(now()) @updatedAt
   user_Coupons user_Coupons[]

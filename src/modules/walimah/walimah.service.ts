@@ -4,9 +4,10 @@ import OpenAI from 'openai';
 import { MemoryStorageFile } from '@blazity/nest-file-fastify';
 import { CustomBadRequestException, CustomNotFoundException } from 'src/utils/custom.exceptions';
 import { handleException } from 'src/utils/error.handler';
-import { AddUserDto, checkUserCodeDto, UploadDto, UserIdentifier } from './dto';
+import { AddUserDto, checkUserCodeDto, UploadCouponsSheetDto, UploadDto, UserIdentifier } from './dto';
 import { addPathToFiles, saveFilesOnServer } from 'src/utils/file.handler';
 import { ConfigService } from '@nestjs/config';
+import * as XLSX from 'xlsx';
 
 @Injectable()
 export class WalimahService {
@@ -320,6 +321,96 @@ export class WalimahService {
 			return deletedImages;
 		} catch (error) {
 			handleException(error, {});
+		}
+	}
+
+	async uploadCouponsSheet(dto: UploadCouponsSheetDto, file: MemoryStorageFile) {
+		try {
+			if (!file) {
+				throw new CustomBadRequestException('No file uploaded');
+			}
+
+			// 1️⃣ Parse Excel buffer
+			const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+			const sheetName = workbook.SheetNames[0]; // first sheet
+			const worksheet = workbook.Sheets[sheetName];
+
+			// 2️⃣ Convert to JSON
+			const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+			// header:1 → returns array of arrays instead of objects
+
+			// 3️⃣ Skip header row if exists
+			const dataRows = rows.slice(1);
+
+			// 4️⃣ Map rows into Prisma insert
+			const couponsData = dataRows
+				.map((row: any[]) => {
+					return {
+						name: row[0]?.toString().trim(), // Column A
+						precentage: row[2]?.toString().trim(), // Column C
+						startDate: new Date(row[3]), // Column D
+						endDate: new Date(row[4]), // Column E
+					};
+				})
+				.filter((c) => c.name); // filter out empty rows
+
+			// 5️⃣ Insert into DB
+			await this.prisma.coupons.createMany({
+				data: couponsData,
+				skipDuplicates: true,
+			});
+
+			return { success: true, count: couponsData.length };
+		} catch (error) {
+			handleException(error, dto);
+		}
+	}
+
+	async addUserCoupon(dto: UserIdentifier) {
+		try {
+			const ExistingUser = await this.prisma.walimah_users.findFirst({
+				where: {
+					id: dto.user_id,
+				},
+			});
+
+			if (!ExistingUser) {
+				throw new CustomNotFoundException('User not found!');
+			}
+
+			// 1️⃣ Count coupons
+			const totalCoupons = await this.prisma.coupons.count();
+			if (totalCoupons === 0) {
+				throw new CustomNotFoundException('No coupons available');
+			}
+
+			// 2️⃣ Pick a random offset
+			const randomIndex = Math.floor(Math.random() * totalCoupons);
+
+			// 3️⃣ Fetch one random coupon
+			const randomCoupon = await this.prisma.coupons.findFirst({
+				skip: randomIndex,
+				take: 1,
+			});
+
+			if (!randomCoupon) {
+				throw new CustomNotFoundException('Failed to select coupon');
+			}
+
+			// 4️⃣ Assign to user
+			await this.prisma.user_Coupons.create({
+				data: {
+					user_id: ExistingUser.id,
+					coupon_id: randomCoupon.id,
+				},
+				include: {
+					coupon: true,
+				},
+			});
+
+			return randomCoupon;
+		} catch (error) {
+			handleException(error, dto);
 		}
 	}
 }
