@@ -101,9 +101,10 @@ export class ChatBotService {
 			if (!file.mimetype || !['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.mimetype)) {
 				throw new CustomBadRequestException('Invalid image type');
 			}
-			const base64Image = file.buffer.toString('base64');
-
-			const result = await this.useOpenAI(base64Image);
+			const base64Image1 = Buffer.from(file.buffer['data']).toString('base64');
+			// Prepend data URI scheme if needed (optional)
+			const dataURI = `data:${file.mimetype};base64,${base64Image1}`;
+			const result = await this.useOpenAI(dataURI);
 
 			// Handle OpenAI errors
 			if (result?.error) {

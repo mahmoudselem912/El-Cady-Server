@@ -56,36 +56,42 @@ export class WalimahService {
 		return code;
 	}
 
-	private async useOpenAI(base64Image: string) {
+	private async useOpenAI(base64ImageString: string) {
 		const prompt = `
-    أنت خبير في تحليل فواتير المشتريات. المطلوب منك:
-    
-    1. استخراج تاريخ الفاتورة بصيغة yyyy-mm-dd.
-    2. استخراج رقم الفاتورة.
-    3. تحديد ما إذا كانت الفاتورة حقيقية (صادرة من نظام نقاط بيع رسمي).
-    4. التحقق مما إذا كانت الفاتورة تحتوي على منتج يسمى "أرز الوليمة".
-    5. تأكد أن المنتج يسمى حرفيًا "أرز الوليمة" بدون افتراض أو تخمين. لا تعتبر أسماء مشابهة أو منتجات أخرى على أنها "أرز الوليمة".
-    ### الشكل المطلوب للإجابة:
-    
-    {
-      "invoiceDate": "yyyy-mm-dd",
-      "invoiceNumber": "رقم الفاتورة",
-      "isReal": true,
-      "hasRice": {
-        "value": true,
-        "reason": "الفاتورة تحتوي على بند باسم 'أرز الوليمة'"
-      }
-    }
-    
-    إذا لم تتمكن من استخراج البيانات، ارجع النتيجة بهذا الشكل:
-    
-    {
-      "error": {
-        "message": "DESCRIPTION_OF_THE_ERROR_IN_UPPER_CASE_UNDERSCORED",
-        "status": 500
-      }
-    }
-    `;
+أنت خبير في تحليل فواتير المشتريات. المطلوب منك:
+
+1. استخراج تاريخ الفاتورة بصيغة yyyy-mm-dd.
+2. استخراج رقم الفاتورة.
+3. تحديد ما إذا كانت الفاتورة حقيقية (صادرة من نظام نقاط بيع رسمي).
+4. التحقق مما إذا كانت الفاتورة تحتوي على منتج يتعلق بـ "أرز الوليمة".
+   - المنتج يُعتبر "أرز الوليمة" إذا احتوى اسمه على كلمتين تدلان على:
+     • كلمة "الوليمة" أو "WALIMAH"
+     • كلمة "أرز" أو "RICE"
+   - الكلمات قد تأتي بأي ترتيب أو مع أوصاف إضافية مثل: "أرز الوليمة"، "الوليمة أرز بسمتي"، "AL WALIMAH SELLA R"، "الوليمة أرز كبير".
+   - المهم أن تكون الكلمتان موجودتان معًا في اسم المنتج.
+5. إذا لم يظهر في الفاتورة أي منتج يحتوي على الكلمتين معًا، فاعتبر أنه غير موجود.
+
+### الشكل المطلوب للإجابة:
+
+{
+  "invoiceDate": "yyyy-mm-dd",
+  "invoiceNumber": "رقم الفاتورة",
+  "isReal": true,
+  "hasRice": {
+    "value": true,
+    "reason": "الفاتورة تحتوي على بند باسم 'الوليمة ارز بسمتي'"
+  }
+}
+
+إذا لم تتمكن من استخراج البيانات، ارجع النتيجة بهذا الشكل:
+
+{
+  "error": {
+    "message": "DESCRIPTION_OF_THE_ERROR_IN_UPPER_CASE_UNDERSCORED",
+    "status": 500
+  }
+}
+`;
 
 		try {
 			const response = await this.openai.chat.completions.create({
@@ -98,14 +104,14 @@ export class WalimahService {
 							{
 								type: 'image_url',
 								image_url: {
-									url: `data:image/jpeg;base64,${base64Image}`,
+									url: base64ImageString,
 									detail: 'high',
 								},
 							},
 						],
 					},
 				],
-				// max_tokens: 800,
+				max_tokens: 800,
 			});
 
 			console.log(`response: ${response}`);
@@ -138,9 +144,15 @@ export class WalimahService {
 			if (!file.mimetype || !['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.mimetype)) {
 				throw new CustomBadRequestException('Invalid image type');
 			}
-			const base64Image = file.buffer.toString('base64');
 
-			const result = await this.useOpenAI(base64Image);
+			console.log(file);
+
+			const base64Image1 = Buffer.from(file.buffer).toString('base64');
+
+			// Prepend data URI scheme if needed (optional)
+			const dataURI = `data:${file.mimetype};base64,${base64Image1}`;
+
+			const result = await this.useOpenAI(dataURI);
 
 			// Handle OpenAI errors
 			if (result?.error) {
@@ -190,7 +202,7 @@ export class WalimahService {
 			if (ExistingUser) {
 				return { user: ExistingUser, type: 'exist' };
 			} else {
-				const code = await this.generateUniqueUserCode()
+				const code = await this.generateUniqueUserCode();
 
 				const user = await this.prisma.walimah_users.create({
 					data: {
@@ -199,7 +211,7 @@ export class WalimahService {
 						email: dto.email,
 						number: dto.number,
 						code: code,
-						usedCode: dto.code
+						usedCode: dto.code,
 					},
 				});
 
@@ -214,17 +226,17 @@ export class WalimahService {
 		try {
 			const ExistingUser = await this.prisma.walimah_users.findFirst({
 				where: {
-					code: dto.code
-				}
-			})
+					code: dto.code,
+				},
+			});
 
 			if (!ExistingUser) {
-				throw new CustomNotFoundException('Code not found!')
+				throw new CustomNotFoundException('Code not found!');
 			}
 
-			return 'Code is correct'
+			return 'Code is correct';
 		} catch (error) {
-			handleException(error, dto)
+			handleException(error, dto);
 		}
 	}
 
@@ -232,37 +244,37 @@ export class WalimahService {
 		try {
 			const ExistingUser = await this.prisma.walimah_users.findFirst({
 				where: {
-					id: dto.user_id
-				}
-			})
+					id: dto.user_id,
+				},
+			});
 
 			if (!ExistingUser) {
-				throw new CustomNotFoundException('User not found!')
+				throw new CustomNotFoundException('User not found!');
 			}
-			let nominatedTimes = 0
+			let nominatedTimes = 0;
 			if (ExistingUser.code) {
 				nominatedTimes = await this.prisma.walimah_users.count({
 					where: {
-						usedCode: ExistingUser.code
-					}
-				})
+						usedCode: ExistingUser.code,
+					},
+				});
 			}
 
 			const userCoupons = await this.prisma.user_Coupons.findMany({
 				where: {
-					user_id: dto.user_id
+					user_id: dto.user_id,
 				},
-				include:{
-					coupon: true
-				}
-			})
+				include: {
+					coupon: true,
+				},
+			});
 			return {
 				user: ExistingUser,
 				nominatedTimes,
-				userCoupons
-			}
+				userCoupons,
+			};
 		} catch (error) {
-			handleException(error, dto)
+			handleException(error, dto);
 		}
 	}
 
@@ -287,8 +299,7 @@ export class WalimahService {
 				message: `Codes assigned to ${usersWithoutCode.length} users.`,
 			};
 		} catch (error) {
-			handleException(error, {})
+			handleException(error, {});
 		}
 	}
-
 }
