@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Post, Query, UseInterceptors } from '@ne
 import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { WalimahService } from './walimah.service';
 import { FileInterceptor, MemoryStorageFile, UploadedFile } from '@blazity/nest-file-fastify';
-import { AddUserDto, checkUserCodeDto, UploadCouponsSheetDto, UploadDto, UserIdentifier } from './dto';
+import { AddCouponDto, AddUserDto, checkUserCodeDto, UploadCouponsSheetDto, UploadDto, UserIdentifier } from './dto';
 import { successfulResponse } from 'src/utils/response.handler';
 
 @Controller('walimah')
@@ -55,6 +55,12 @@ export class WalimahController {
 	@Post('upload-coupons-sheet')
 	async UploadCouponsSheet(@Body() dto: UploadCouponsSheetDto, @UploadedFile() file: MemoryStorageFile) {
 		const data = await this.walimahService.uploadCouponsSheet(dto, file);
+		return successfulResponse(data);
+	}
+
+	@Post('add-coupon')
+	async AddCoupon(@Body() dto: AddCouponDto) {
+		const data = await this.walimahService.addCoupon(dto);
 		return successfulResponse(data);
 	}
 

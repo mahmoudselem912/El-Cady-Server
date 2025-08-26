@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { MemoryStorageFile } from '@blazity/nest-file-fastify';
 import { CustomBadRequestException, CustomNotFoundException } from 'src/utils/custom.exceptions';
 import { handleException } from 'src/utils/error.handler';
-import { AddUserDto, checkUserCodeDto, UploadCouponsSheetDto, UploadDto, UserIdentifier } from './dto';
+import { AddCouponDto, AddUserDto, checkUserCodeDto, UploadCouponsSheetDto, UploadDto, UserIdentifier } from './dto';
 import { addPathToFiles, saveFilesOnServer } from 'src/utils/file.handler';
 import { ConfigService } from '@nestjs/config';
 import * as XLSX from 'xlsx';
@@ -483,6 +483,23 @@ export class WalimahService {
 			};
 		} catch (error) {
 			handleException(error, {});
+		}
+	}
+
+	async addCoupon(dto: AddCouponDto) {
+		try {
+			const code = await this.prisma.coupons.create({
+				data: {
+					name: dto.code,
+					startDate: new Date(dto.startDate),
+					endDate: new Date(dto.endDate),
+					precentage: dto.percentage,
+				},
+			});
+
+			return code;
+		} catch (error) {
+			handleException(error, dto);
 		}
 	}
 }
