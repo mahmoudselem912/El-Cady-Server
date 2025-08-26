@@ -63,4 +63,10 @@ export class WalimahController {
 		const data = await this.walimahService.addUserCoupon(dto);
 		return successfulResponse(data);
 	}
+
+	@Get('get-dashboard-clients')
+	async GetDashboardClients() {
+		const data = await this.walimahService.getDashboardClients();
+		return successfulResponse(data);
+	}
 }

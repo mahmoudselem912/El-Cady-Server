@@ -413,4 +413,43 @@ export class WalimahService {
 			handleException(error, dto);
 		}
 	}
+
+	async getDashboardClients() {
+		try {
+			const users = await this.prisma.walimah_users.findMany({
+				include: {
+					user_Coupons: true,
+					walimah_users_bills: true,
+				},
+			});
+
+			// build a lookup: usedCode → how many times it was used
+			const usageMap: Record<string, number> = {};
+			for (const u of users) {
+				if (u.usedCode) {
+					usageMap[u.usedCode] = (usageMap[u.usedCode] || 0) + 1;
+				}
+			}
+
+			// enrich each user with how many times his code was shared
+			const enrichedUsers = users.map((u) => ({
+				...u,
+				sharedCount: u.code ? usageMap[u.code] || 0 : 0,
+			}));
+
+			// global counts
+			const totalUsers = users.length;
+			const sharedUsersCount = enrichedUsers.filter((u) => u.sharedCount > 0).length;
+			const winnersCount = enrichedUsers.filter((u) => u.user_Coupons.length > 0).length;
+
+			return {
+				users: enrichedUsers,
+				totalUsers,
+				sharedUsersCount, // users whose code was shared at least once
+				winnersCount,
+			};
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
 }
