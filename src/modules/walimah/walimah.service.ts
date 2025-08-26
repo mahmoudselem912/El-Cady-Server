@@ -452,4 +452,37 @@ export class WalimahService {
 			handleException(error, {});
 		}
 	}
+
+	async getDashboardCoupons() {
+		try {
+			// 1. Get all coupons with their user_Coupons
+			const coupons = await this.prisma.coupons.findMany({
+				include: {
+					user_Coupons: true,
+				},
+			});
+
+			// 2. Total coupons count
+			const totalCoupons = coupons.length;
+
+			// 3. Total redemptions (number of user_Coupons records)
+			const totalRedemptions = coupons.reduce((acc, c) => acc + c.user_Coupons.length, 0);
+
+			// 4. Active coupons (those used at least once)
+			const activeCouponsCount = coupons.filter((c) => c.user_Coupons.length > 0).length;
+
+			// 5. Average redemption rate
+			const avgRedemptionRate = totalCoupons > 0 ? totalRedemptions / totalCoupons : 0;
+
+			return {
+				coupons,
+				totalCoupons,
+				activeCouponsCount,
+				totalRedemptions,
+				avgRedemptionRate,
+			};
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
 }
