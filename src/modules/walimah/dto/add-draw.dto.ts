@@ -16,7 +16,7 @@ export class Prize {
 	@ApiProperty({ example: 1 })
 	@IsNumber()
 	@Transform(({ value }) => parseInt(value))
-	winners_num: number;
+	winners: number;
 }
 
 export class AddDrawDto {

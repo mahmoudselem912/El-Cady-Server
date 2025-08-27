@@ -539,7 +539,7 @@ export class WalimahService {
 							draw_id: draw.id,
 							name: prize.name,
 							value: prize.value,
-							winners_num: prize.winners_num,
+							winners_num: prize.winners,
 						},
 					}),
 			);
