@@ -528,6 +528,7 @@ export class WalimahService {
 					title: dto.title,
 					startDate: new Date(dto.startDate),
 					endDate: new Date(dto.endDate),
+					status: 'Scheduled',
 				},
 			});
 

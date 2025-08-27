@@ -106,6 +106,7 @@ model country {
 model draw {
   id          Int           @id @default(autoincrement())
   title       String
+  status      DrawStatus
   startDate   DateTime
   endDate     DateTime
   createdAt   DateTime      @default(now())
@@ -143,4 +144,10 @@ enum Gender {
 enum Body {
   Thin
   NotThin
+}
+
+enum DrawStatus {
+  Scheduled
+  Completed
+  Active
 }
