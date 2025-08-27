@@ -646,4 +646,28 @@ export class WalimahService {
 			handleException(error, dto);
 		}
 	}
+
+	async deleteDraw(dto: DrawIdentifier) {
+		try {
+			const ExistingDraw = await this.prisma.draw.findFirst({
+				where: {
+					id: dto.draw_id,
+				},
+			});
+
+			if (!ExistingDraw) {
+				throw new CustomNotFoundException('Draw not found!');
+			}
+
+			const deletedDraw = await this.prisma.draw.delete({
+				where: {
+					id: dto.draw_id,
+				},
+			});
+
+			return deletedDraw;
+		} catch (error) {
+			handleException(error, dto);
+		}
+	}
 }

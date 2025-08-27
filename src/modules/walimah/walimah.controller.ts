@@ -108,4 +108,10 @@ export class WalimahController {
 		const data = await this.walimahService.executeDraw(dto);
 		return successfulResponse(data);
 	}
+
+	@Delete('delete-draw')
+	async DeleteDraw(@Query() dto: DrawIdentifier) {
+		const data = await this.walimahService.deleteDraw(dto);
+		return successfulResponse(data);
+	}
 }
