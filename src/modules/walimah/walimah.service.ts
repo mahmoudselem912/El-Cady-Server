@@ -16,6 +16,7 @@ import {
 import { addPathToFiles, saveFilesOnServer } from 'src/utils/file.handler';
 import { ConfigService } from '@nestjs/config';
 import * as XLSX from 'xlsx';
+import { DrawIdentifier } from './dto/draw-identifier';
 
 @Injectable()
 export class WalimahService {
@@ -567,6 +568,66 @@ export class WalimahService {
 			return { draws, totalUsers };
 		} catch (error) {
 			handleException(error, {});
+		}
+	}
+
+	async executeDraw(dto: DrawIdentifier) {
+		try {
+			const ExistingDraw = await this.prisma.draw.findFirst({
+				where: {
+					id: dto.draw_id,
+				},
+				include: {
+					draw_prizes: true,
+				},
+			});
+
+			if (!ExistingDraw) {
+				throw new CustomNotFoundException('DRAW_NOT_FOUND');
+			}
+
+			const users = await this.prisma.walimah_users.findMany();
+			if (users.length === 0) throw new CustomBadRequestException('No users available for draw');
+
+			const createdWinners = [];
+
+			// For each prize, pick winners
+			for (const prize of ExistingDraw.draw_prizes) {
+				const availableUsers = [...users]; // clone
+				const winners: number[] = [];
+
+				for (let i = 0; i < prize.winners_num; i++) {
+					if (availableUsers.length === 0) break;
+
+					// pick random index
+					const randomIndex = Math.floor(Math.random() * availableUsers.length);
+					const winner = availableUsers[randomIndex];
+
+					winners.push(winner.id);
+					availableUsers.splice(randomIndex, 1);
+				}
+
+				// Save winners
+				for (const userId of winners) {
+					const winner = await this.prisma.draw_winners.create({
+						data: {
+							draw_prize_id: prize.id,
+							user_id: userId,
+						},
+					});
+					createdWinners.push(winner);
+				}
+			}
+
+			// Update draw status
+			await this.prisma.draw.update({
+				where: { id: dto.draw_id },
+				data: { status: 'Completed' },
+			});
+
+			return { message: 'Draw executed successfully', winners: createdWinners };
+		} catch (error) {
+			handleException(error, dto);
 		}
 	}
 }

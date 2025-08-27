@@ -12,6 +12,7 @@ import {
 	UserIdentifier,
 } from './dto';
 import { successfulResponse } from 'src/utils/response.handler';
+import { DrawIdentifier } from './dto/draw-identifier';
 
 @Controller('walimah')
 @ApiTags('Walimah')
@@ -99,6 +100,12 @@ export class WalimahController {
 	@Get('get-all-draws')
 	async GetAllDraws() {
 		const data = await this.walimahService.getAllDraws();
+		return successfulResponse(data);
+	}
+
+	@Post('execute-draw')
+	async ExecuteDraw(@Body() dto: DrawIdentifier) {
+		const data = await this.walimahService.executeDraw(dto);
 		return successfulResponse(data);
 	}
 }
