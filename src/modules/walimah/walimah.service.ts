@@ -562,7 +562,9 @@ export class WalimahService {
 				},
 			});
 
-			return draws;
+			const totalUsers = await this.prisma.walimah_users.count();
+
+			return { draws, totalUsers };
 		} catch (error) {
 			handleException(error, {});
 		}
