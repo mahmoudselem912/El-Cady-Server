@@ -557,7 +557,11 @@ export class WalimahService {
 				include: {
 					draw_prizes: {
 						include: {
-							draw_winners: true,
+							draw_winners: {
+								include: {
+									user: true,
+								},
+							},
 						},
 					},
 				},
@@ -614,10 +618,10 @@ export class WalimahService {
 							draw_prize_id: prize.id,
 							user_id: userId,
 						},
-						include:{
+						include: {
 							draw_prize: true,
-							user: true
-						}
+							user: true,
+						},
 					});
 					createdWinners.push(winner);
 				}
