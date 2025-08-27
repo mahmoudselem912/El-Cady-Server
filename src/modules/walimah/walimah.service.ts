@@ -579,32 +579,41 @@ export class WalimahService {
 	async executeDraw(dto: DrawIdentifier) {
 		try {
 			const ExistingDraw = await this.prisma.draw.findFirst({
-				where: {
-					id: dto.draw_id,
-				},
-				include: {
-					draw_prizes: true,
-				},
+				where: { id: dto.draw_id },
+				include: { draw_prizes: true },
 			});
 
 			if (!ExistingDraw) {
 				throw new CustomNotFoundException('DRAW_NOT_FOUND');
 			}
 
-			const users = await this.prisma.walimah_users.findMany();
-			if (users.length === 0) throw new CustomBadRequestException('No users available for draw');
+			// 🚨 Find all users who already won in previous draws
+			const previousWinners = await this.prisma.draw_winners.findMany({
+				select: { user_id: true },
+			});
+
+			const excludedUserIds = new Set(previousWinners.map((w) => w.user_id));
+
+			// Get all users who haven't won before
+			const users = await this.prisma.walimah_users.findMany({
+				where: {
+					id: { notIn: Array.from(excludedUserIds) },
+				},
+			});
+
+			if (users.length === 0) {
+				throw new CustomBadRequestException('No eligible users available for draw');
+			}
 
 			const createdWinners = [];
 
-			// For each prize, pick winners
 			for (const prize of ExistingDraw.draw_prizes) {
-				const availableUsers = [...users]; // clone
+				const availableUsers = [...users];
 				const winners: number[] = [];
 
 				for (let i = 0; i < prize.winners_num; i++) {
 					if (availableUsers.length === 0) break;
 
-					// pick random index
 					const randomIndex = Math.floor(Math.random() * availableUsers.length);
 					const winner = availableUsers[randomIndex];
 
@@ -612,7 +621,6 @@ export class WalimahService {
 					availableUsers.splice(randomIndex, 1);
 				}
 
-				// Save winners
 				for (const userId of winners) {
 					const winner = await this.prisma.draw_winners.create({
 						data: {
@@ -628,7 +636,6 @@ export class WalimahService {
 				}
 			}
 
-			// Update draw status
 			await this.prisma.draw.update({
 				where: { id: dto.draw_id },
 				data: { status: 'Completed' },
