@@ -35,6 +35,7 @@ model walimah_users {
   updatedAt           DateTime              @default(now()) @updatedAt
   user_Coupons        user_Coupons[]
   walimah_users_bills walimah_users_bills[]
+  draw_winners        draw_winners[]
 }
 
 model walimah_users_bills {
@@ -100,6 +101,38 @@ model country {
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @default(now()) @updatedAt
   swapPhotos swapPhotos[]
+}
+
+model draw {
+  id          Int           @id @default(autoincrement())
+  title       String
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+  draw_prizes draw_prizes[]
+}
+
+model draw_prizes {
+  id           Int            @id @default(autoincrement())
+  draw_id      Int
+  draw         draw           @relation(fields: [draw_id], references: [id], onDelete: Cascade)
+  name         String
+  value        String
+  winners_num  Int
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
+  draw_winners draw_winners[]
+}
+
+model draw_winners {
+  id            Int           @id @default(autoincrement())
+  draw_prize_id Int
+  draw_prize    draw_prizes   @relation(fields: [draw_prize_id], references: [id], onDelete: Cascade)
+  user_id       Int
+  user          walimah_users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now()) @updatedAt
 }
 
 enum Gender {

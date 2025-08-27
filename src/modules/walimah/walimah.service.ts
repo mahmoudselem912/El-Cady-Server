@@ -4,7 +4,15 @@ import OpenAI from 'openai';
 import { MemoryStorageFile } from '@blazity/nest-file-fastify';
 import { CustomBadRequestException, CustomNotFoundException } from 'src/utils/custom.exceptions';
 import { handleException } from 'src/utils/error.handler';
-import { AddCouponDto, AddUserDto, checkUserCodeDto, UploadCouponsSheetDto, UploadDto, UserIdentifier } from './dto';
+import {
+	AddCouponDto,
+	AddDrawDto,
+	AddUserDto,
+	checkUserCodeDto,
+	UploadCouponsSheetDto,
+	UploadDto,
+	UserIdentifier,
+} from './dto';
 import { addPathToFiles, saveFilesOnServer } from 'src/utils/file.handler';
 import { ConfigService } from '@nestjs/config';
 import * as XLSX from 'xlsx';
@@ -500,6 +508,62 @@ export class WalimahService {
 			return code;
 		} catch (error) {
 			handleException(error, dto);
+		}
+	}
+
+	async addDraw(dto: AddDrawDto) {
+		try {
+			const ExistingTitle = await this.prisma.draw.findFirst({
+				where: {
+					title: dto.title,
+				},
+			});
+
+			if (ExistingTitle) {
+				throw new CustomBadRequestException('THERE_IS_DRAW_WITH_THIS_NAME');
+			}
+
+			const draw = await this.prisma.draw.create({
+				data: {
+					title: dto.title,
+					startDate: new Date(dto.startDate),
+					endDate: new Date(dto.endDate),
+				},
+			});
+
+			dto.prizes.map(
+				async (prize) =>
+					await this.prisma.draw_prizes.create({
+						data: {
+							draw_id: draw.id,
+							name: prize.name,
+							value: prize.value,
+							winners_num: prize.winners_num,
+						},
+					}),
+			);
+
+			return draw;
+		} catch (error) {
+			handleException(error, dto);
+		}
+	}
+
+	async getAllDraws() {
+		try {
+			const draws = await this.prisma.draw.findMany({
+				include: {
+					draw_prizes: {
+						include: {
+							draw_winners: true,
+						},
+					},
+				},
+			});
+
+			return draws;
+		} catch (error) {
+			handleException(error, {});
 		}
 	}
 }

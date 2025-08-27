@@ -2,7 +2,15 @@ import { Body, Controller, Delete, Get, Post, Query, UseInterceptors } from '@ne
 import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { WalimahService } from './walimah.service';
 import { FileInterceptor, MemoryStorageFile, UploadedFile } from '@blazity/nest-file-fastify';
-import { AddCouponDto, AddUserDto, checkUserCodeDto, UploadCouponsSheetDto, UploadDto, UserIdentifier } from './dto';
+import {
+	AddCouponDto,
+	AddDrawDto,
+	AddUserDto,
+	checkUserCodeDto,
+	UploadCouponsSheetDto,
+	UploadDto,
+	UserIdentifier,
+} from './dto';
 import { successfulResponse } from 'src/utils/response.handler';
 
 @Controller('walimah')
@@ -79,6 +87,18 @@ export class WalimahController {
 	@Get('get-dashboard-coupons')
 	async GetDashboardCoupons() {
 		const data = await this.walimahService.getDashboardCoupons();
+		return successfulResponse(data);
+	}
+
+	@Post('add-draw')
+	async AddDraw(@Body() dto: AddDrawDto) {
+		const data = await this.walimahService.addDraw(dto);
+		return successfulResponse(data);
+	}
+
+	@Get('get-all-draws')
+	async GetAllDraws() {
+		const data = await this.walimahService.getAllDraws();
 		return successfulResponse(data);
 	}
 }
