@@ -568,8 +568,9 @@ export class WalimahService {
 			});
 
 			const totalUsers = await this.prisma.walimah_users.count();
+			const totalWinners = await this.prisma.draw_winners.count();
 
-			return { draws, totalUsers };
+			return { draws, totalUsers, totalWinners };
 		} catch (error) {
 			handleException(error, {});
 		}
