@@ -596,7 +596,7 @@ export class WalimahService {
 			const { page = 1, pageItemsCount = 10, search } = dto;
 
 			const where = search ? { title: { contains: search } } : {};
-
+			const totalDraws = await this.prisma.draw.count();
 			// 1️⃣ Count total filtered draws for pagination
 			const totalFilteredDraws = await this.prisma.draw.count({ where });
 
@@ -629,6 +629,7 @@ export class WalimahService {
 
 			return {
 				draws,
+				totalDraws,
 				totalUsers,
 				totalWinners,
 				page,
