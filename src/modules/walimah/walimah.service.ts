@@ -591,26 +591,44 @@ export class WalimahService {
 		}
 	}
 
-	async getAllDraws() {
+	async getAllDraws(dto: GetDashboardClientsDto) {
 		try {
+			const { page = 1, pageItemsCount = 10, search } = dto;
+
+			const where = search ? { title: { contains: search, mode: 'insensitive' } } : {};
+
+			// 1️⃣ Count total filtered draws for pagination
+			const totalFilteredDraws = await this.prisma.draw.count({ where });
+
+			// 2️⃣ Fetch paginated draws with related data
 			const draws = await this.prisma.draw.findMany({
+				where,
 				include: {
 					draw_prizes: {
 						include: {
 							draw_winners: {
-								include: {
-									user: true,
-								},
+								include: { user: true },
 							},
 						},
 					},
 				},
+				skip: (page - 1) * pageItemsCount,
+				take: pageItemsCount,
+				orderBy: { createdAt: 'desc' },
 			});
 
+			// 3️⃣ Global statistics
 			const totalUsers = await this.prisma.walimah_users.count();
 			const totalWinners = await this.prisma.draw_winners.count();
 
-			return { draws, totalUsers, totalWinners };
+			return {
+				draws,
+				totalUsers,
+				totalWinners,
+				page,
+				pageItemsCount,
+				totalPages: Math.ceil(totalFilteredDraws / pageItemsCount),
+			};
 		} catch (error) {
 			handleException(error, {});
 		}

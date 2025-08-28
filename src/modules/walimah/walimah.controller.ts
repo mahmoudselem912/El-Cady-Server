@@ -99,8 +99,8 @@ export class WalimahController {
 	}
 
 	@Get('get-all-draws')
-	async GetAllDraws() {
-		const data = await this.walimahService.getAllDraws();
+	async GetAllDraws(@Query() dto: GetDashboardClientsDto) {
+		const data = await this.walimahService.getAllDraws(dto);
 		return successfulResponse(data);
 	}
 
