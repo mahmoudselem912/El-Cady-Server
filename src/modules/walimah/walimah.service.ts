@@ -489,33 +489,46 @@ export class WalimahService {
 		}
 	}
 
-	async getDashboardCoupons() {
+	async getDashboardCoupons(dto: GetDashboardClientsDto) {
 		try {
-			// 1. Get all coupons with their user_Coupons
-			const coupons = await this.prisma.coupons.findMany({
+			// 1️⃣ Fetch all coupons (for statistics)
+			const allCoupons = await this.prisma.coupons.findMany({
 				include: {
 					user_Coupons: true,
 				},
 			});
 
-			// 2. Total coupons count
-			const totalCoupons = coupons.length;
-
-			// 3. Total redemptions (number of user_Coupons records)
-			const totalRedemptions = coupons.reduce((acc, c) => acc + c.user_Coupons.length, 0);
-
-			// 4. Active coupons (those used at least once)
-			const activeCouponsCount = coupons.filter((c) => c.user_Coupons.length > 0).length;
-
-			// 5. Average redemption rate
+			// 2️⃣ Global statistics
+			const totalCoupons = allCoupons.length;
+			const totalRedemptions = allCoupons.reduce((acc, c) => acc + c.user_Coupons.length, 0);
+			const activeCouponsCount = allCoupons.filter((c) => c.user_Coupons.length > 0).length;
 			const avgRedemptionRate = totalCoupons > 0 ? totalRedemptions / totalCoupons : 0;
 
+			// 3️⃣ Apply search filter
+			let filteredCoupons = allCoupons;
+			if (dto.search) {
+				const searchLower = dto.search.toLowerCase();
+				filteredCoupons = allCoupons.filter((c) => c.name.toLowerCase().includes(searchLower));
+			}
+
+			// 4️⃣ Apply pagination if page and pageItemsCount are provided
+			let paginatedCoupons = filteredCoupons;
+			let totalPages = 1;
+			if (dto.page && dto.pageItemsCount) {
+				const start = (dto.page - 1) * dto.pageItemsCount;
+				paginatedCoupons = filteredCoupons.slice(start, start + dto.pageItemsCount);
+				totalPages = Math.ceil(filteredCoupons.length / dto.pageItemsCount);
+			}
+
 			return {
-				coupons,
+				coupons: paginatedCoupons,
 				totalCoupons,
 				activeCouponsCount,
 				totalRedemptions,
 				avgRedemptionRate,
+				page: dto.page || null,
+				pageItemsCount: dto.pageItemsCount || null,
+				totalPages,
 			};
 		} catch (error) {
 			handleException(error, {});

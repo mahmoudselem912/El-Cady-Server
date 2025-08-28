@@ -87,8 +87,8 @@ export class WalimahController {
 	}
 
 	@Get('get-dashboard-coupons')
-	async GetDashboardCoupons() {
-		const data = await this.walimahService.getDashboardCoupons();
+	async GetDashboardCoupons(@Query() dto: GetDashboardClientsDto) {
+		const data = await this.walimahService.getDashboardCoupons(dto);
 		return successfulResponse(data);
 	}
 
