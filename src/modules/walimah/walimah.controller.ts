@@ -7,6 +7,7 @@ import {
 	AddDrawDto,
 	AddUserDto,
 	checkUserCodeDto,
+	GetDashboardClientsDto,
 	UploadCouponsSheetDto,
 	UploadDto,
 	UserIdentifier,
@@ -80,8 +81,8 @@ export class WalimahController {
 	}
 
 	@Get('get-dashboard-clients')
-	async GetDashboardClients() {
-		const data = await this.walimahService.getDashboardClients();
+	async GetDashboardClients(@Query() dto: GetDashboardClientsDto) {
+		const data = await this.walimahService.getDashboardClients(dto);
 		return successfulResponse(data);
 	}
 

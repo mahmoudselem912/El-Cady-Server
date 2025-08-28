@@ -9,6 +9,7 @@ import {
 	AddDrawDto,
 	AddUserDto,
 	checkUserCodeDto,
+	GetDashboardClientsDto,
 	UploadCouponsSheetDto,
 	UploadDto,
 	UserIdentifier,
@@ -423,39 +424,65 @@ export class WalimahService {
 		}
 	}
 
-	async getDashboardClients() {
+	async getDashboardClients(dto: GetDashboardClientsDto) {
 		try {
-			const users = await this.prisma.walimah_users.findMany({
+			// 1️⃣ Fetch all users (for statistics)
+			const allUsers = await this.prisma.walimah_users.findMany({
 				include: {
 					user_Coupons: true,
 					walimah_users_bills: true,
 				},
 			});
 
-			// build a lookup: usedCode → how many times it was used
+			// 2️⃣ Build code usage map
 			const usageMap: Record<string, number> = {};
-			for (const u of users) {
+			for (const u of allUsers) {
 				if (u.usedCode) {
 					usageMap[u.usedCode] = (usageMap[u.usedCode] || 0) + 1;
 				}
 			}
 
-			// enrich each user with how many times his code was shared
-			const enrichedUsers = users.map((u) => ({
+			// 3️⃣ Enrich all users with sharedCount
+			const enrichedAllUsers = allUsers.map((u) => ({
 				...u,
 				sharedCount: u.code ? usageMap[u.code] || 0 : 0,
 			}));
 
-			// global counts
-			const totalUsers = users.length;
-			const sharedUsersCount = enrichedUsers.filter((u) => u.sharedCount > 0).length;
-			const winnersCount = enrichedUsers.filter((u) => u.user_Coupons.length > 0).length;
+			// 4️⃣ Apply search filter
+			let filteredUsers = enrichedAllUsers;
+			if (dto.search) {
+				const searchLower = dto.search.toLowerCase();
+				filteredUsers = enrichedAllUsers.filter(
+					(u) =>
+						u.name.toLowerCase().includes(searchLower) ||
+						u.email.toLowerCase().includes(searchLower) ||
+						(u.code && u.code.toLowerCase().includes(searchLower)),
+				);
+			}
+
+			let paginatedUsers = filteredUsers;
+			let totalPages = 1;
+
+			// 5️⃣ Apply pagination only if both page and pageItemsCount are provided
+			if (dto.page && dto.pageItemsCount) {
+				const start = (dto.page - 1) * dto.pageItemsCount;
+				paginatedUsers = filteredUsers.slice(start, start + dto.pageItemsCount);
+				totalPages = Math.ceil(filteredUsers.length / dto.pageItemsCount);
+			}
+
+			// 6️⃣ Calculate global statistics
+			const totalUsers = enrichedAllUsers.length;
+			const sharedUsersCount = enrichedAllUsers.filter((u) => u.sharedCount > 0).length;
+			const winnersCount = enrichedAllUsers.filter((u) => u.user_Coupons.length > 0).length;
 
 			return {
-				users: enrichedUsers,
+				users: paginatedUsers,
 				totalUsers,
-				sharedUsersCount, // users whose code was shared at least once
+				sharedUsersCount,
 				winnersCount,
+				page: dto.page || null,
+				pageItemsCount: dto.pageItemsCount || null,
+				totalPages,
 			};
 		} catch (error) {
 			handleException(error, {});
