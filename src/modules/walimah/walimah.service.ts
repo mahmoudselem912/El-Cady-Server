@@ -595,14 +595,20 @@ export class WalimahService {
 		try {
 			const { page = 1, pageItemsCount = 10, search } = dto;
 
-			const where = search ? { title: { contains: search, mode: 'insensitive' } } : {};
+			const where = search ? { title: { contains: search } } : {};
 
 			// 1️⃣ Count total filtered draws for pagination
 			const totalFilteredDraws = await this.prisma.draw.count({ where });
 
 			// 2️⃣ Fetch paginated draws with related data
 			const draws = await this.prisma.draw.findMany({
-				where,
+				where: {
+					...(dto.search && {
+						title: {
+							contains: dto.search,
+						},
+					}),
+				},
 				include: {
 					draw_prizes: {
 						include: {
