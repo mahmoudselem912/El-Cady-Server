@@ -763,13 +763,23 @@ export class WalimahService {
 		}
 	}
 
-	async getAllWalimahDashboardUsers() {
+	async getAllWalimahDashboardUsers(dto: GetDashboardClientsDto) {
 		try {
+			const { page = 1, pageItemsCount = 10, search } = dto;
+
 			const users = await this.prisma.walimah_dashboard_user.findMany({
+				where: {
+					name: {
+						contains: dto.search,
+					},
+				},
 				select: {
 					id: true,
 					name: true,
 				},
+				skip: (page - 1) * pageItemsCount,
+				take: pageItemsCount,
+				orderBy: { createdAt: 'desc' },
 			});
 
 			return users;

@@ -150,8 +150,8 @@ export class WalimahController {
 	}
 
 	@Get('get-all-walimah-dashboard-users')
-	async GetAllWalimahDashboardUsers() {
-		const data = await this.walimahService.getAllWalimahDashboardUsers();
+	async GetAllWalimahDashboardUsers(@Query() dto: GetDashboardClientsDto) {
+		const data = await this.walimahService.getAllWalimahDashboardUsers(dto);
 		return successfulResponse(data);
 	}
 
