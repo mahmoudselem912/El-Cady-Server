@@ -86,4 +86,12 @@ export class AuthService {
             handleException(error, dto);
         }
     }
+
+    async verifyToken(token: string) {
+        try {
+                return this.jwt.verify(token); // will throw if invalid/expired
+        } catch (error) {
+            handleException(error, {})
+        }
+    } 
 }
