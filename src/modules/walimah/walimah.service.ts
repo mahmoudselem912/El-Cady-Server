@@ -781,8 +781,23 @@ export class WalimahService {
 				take: pageItemsCount,
 				orderBy: { createdAt: 'desc' },
 			});
+			
+			const totalFilteredUsers = await this.prisma.walimah_dashboard_user.count({
+				where: {
+					name: {
+						contains: dto.search,
+					},
+				},
+			});
 
-			return users;
+			const totalUsers = await this.prisma.walimah_dashboard_user.count();
+			return {
+				users,
+				totalUsers,
+				page,
+				pageItemsCount,
+				totalPages: Math.ceil(totalFilteredUsers / pageItemsCount),
+			};
 		} catch (error) {
 			handleException(error, {});
 		}
