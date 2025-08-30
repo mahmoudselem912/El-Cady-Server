@@ -1,4 +1,3 @@
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
@@ -16,6 +15,8 @@ import { IoAdapter } from '@nestjs/platform-socket.io';
 import { HttpAdapterHost } from '@nestjs/core';
 import { AllExceptionsFilter } from './utils/all-exceptions.filter';
 import * as cors from 'cors';
+import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
+import fastifyCookie from '@fastify/cookie';
 
 async function bootstrap() {
 	const logger: Logger = new Logger('🚀 ' + 'App');
@@ -25,12 +26,21 @@ async function bootstrap() {
 	}, 2500);
 
 	const config = new ConfigService();
-	let httpsOptions = {
-		key: fs.readFileSync(config.get('SSL_KEY_PATH')),
-		cert: fs.readFileSync(config.get('SSL_CERT_PATH')),
-	};
-	if (config.get('ENABLE_HTTPS') === 'false') {
-		httpsOptions = { key: null, cert: null };
+
+	let httpsOptions: { key: Buffer; cert: Buffer } | undefined;
+
+	if (config.get('ENABLE_HTTPS') !== 'false') {
+		const sslKeyPath = config.get('SSL_KEY_PATH');
+		const sslCertPath = config.get('SSL_CERT_PATH');
+
+		if (!sslKeyPath || !sslCertPath) {
+			throw new Error('SSL_KEY_PATH or SSL_CERT_PATH is not defined');
+		}
+
+		httpsOptions = {
+			key: fs.readFileSync(sslKeyPath),
+			cert: fs.readFileSync(sslCertPath),
+		};
 	}
 	const FastifyAdapterOptions = {
 		logger: false,
@@ -43,14 +53,14 @@ async function bootstrap() {
 	const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(FastifyAdapterOptions), {
 		httpsOptions,
 	});
-
+	app.useGlobalInterceptors(new LoggingInterceptor());
 	// app.setGlobalPrefix('api');
 
 	if (config.get('ENABLE_SWAGGER') === 'true') {
 		const swaggerConfig = new DocumentBuilder()
-			.setTitle(`${config.get('NODE_ENV') === 'production' ? 'Prod' : 'Dev'} Events APIs From ElCady Company`)
+			.setTitle(`${config.get('NODE_ENV') === 'production' ? 'Prod' : 'Dev'} IMS APIs From Formation Company`)
 			.setDescription(
-				'RESTful APIs for Events system provided by El Cady Company. These APIs enable interactions with various functionalities, including user management, data retrieval, and more.',
+				'RESTful APIs for the IMS system provided by Formation Company. These APIs enable interactions with various functionalities, including user management, data retrieval, and more.',
 			)
 			.setVersion('1.0.0')
 			.addBearerAuth()
@@ -69,14 +79,25 @@ async function bootstrap() {
 			transform: true,
 		}),
 	);
+
+	const allowedOrigins = [
+		'http://localhost:5173',
+		'https://myapp.com',
+		'http://localhost:4009',
+		'https://localhost:4009',
+		'https://walimah.sawarwaerbah.com'
+	];
+
 	app.enableCors({
-		origin: '*',
+		origin: (origin, callback) => {
+			if (!origin || allowedOrigins.includes(origin)) {
+				callback(null, true);
+			} else {
+				callback(new Error('Not allowed by CORS'));
+			}
+		},
+		credentials: true,
 	});
-	app.use(
-		cors({
-			origin: '*',
-		}),
-	);
 
 	let minuteCounter = 0,
 		maxMinuteCounter = 0,
@@ -126,6 +147,11 @@ async function bootstrap() {
 		},
 	});
 
+	app.register(fastifyCookie, {
+		secret: 'super-secret-key', // for signed cookies (optional)
+		parseOptions: {}, // options passed to cookie parser
+	});
+
 	app.register(require('@fastify/static'), {
 		root: path.join(process.cwd(), '/uploads'),
 		acceptRanges: true,
@@ -150,8 +176,10 @@ async function bootstrap() {
 
 	app.useWebSocketAdapter(new IoAdapter(app));
 
-	const { httpAdapter } = app.get(HttpAdapterHost);
-	app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
+	// const { httpAdapter } = app.get(HttpAdapterHost);
+	// const httpServer = (httpAdapter as any).getInstance();
+
+	// app.useGlobalFilters(new AllExceptionsFilter(httpServer));
 
 	process.on('uncaughtException', (error, origin) => {
 		logger.error('__________________________Uncaught Exception__________________________');
@@ -185,6 +213,7 @@ async function bootstrap() {
 		logger.error('exit code:', code);
 	});
 
-	await app.listen(4000, '0.0.0.0');
+	await app.listen(4009, '0.0.0.0');
 }
+
 bootstrap();

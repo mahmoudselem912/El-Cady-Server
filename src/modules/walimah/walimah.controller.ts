@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, Post, Query, UseInterceptors } from '@nestjs/common';
-import { ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { WalimahService } from './walimah.service';
 import { FileInterceptor, MemoryStorageFile, UploadedFile } from '@blazity/nest-file-fastify';
 import {
@@ -14,6 +14,8 @@ import {
 } from './dto';
 import { successfulResponse } from 'src/utils/response.handler';
 import { DrawIdentifier } from './dto/draw-identifier';
+import { AuthorizeCoreUsersGuard, JwtGuard } from '../auth/guard';
+import { CoreUserEnum, CoreUserType } from '../auth/decorator';
 
 @Controller('walimah')
 @ApiTags('Walimah')
@@ -68,48 +70,72 @@ export class WalimahController {
 		return successfulResponse(data);
 	}
 
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@CoreUserType(CoreUserEnum.CLIENT)
 	@Post('add-coupon')
 	async AddCoupon(@Body() dto: AddCouponDto) {
 		const data = await this.walimahService.addCoupon(dto);
 		return successfulResponse(data);
 	}
 
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@CoreUserType(CoreUserEnum.CLIENT)
 	@Post('add-user-coupon')
 	async AddUserCoupon(@Body() dto: UserIdentifier) {
 		const data = await this.walimahService.addUserCoupon(dto);
 		return successfulResponse(data);
 	}
 
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-dashboard-clients')
 	async GetDashboardClients(@Query() dto: GetDashboardClientsDto) {
 		const data = await this.walimahService.getDashboardClients(dto);
 		return successfulResponse(data);
 	}
 
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-dashboard-coupons')
 	async GetDashboardCoupons(@Query() dto: GetDashboardClientsDto) {
 		const data = await this.walimahService.getDashboardCoupons(dto);
 		return successfulResponse(data);
 	}
 
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@CoreUserType(CoreUserEnum.CLIENT)
 	@Post('add-draw')
 	async AddDraw(@Body() dto: AddDrawDto) {
 		const data = await this.walimahService.addDraw(dto);
 		return successfulResponse(data);
 	}
 
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-all-draws')
 	async GetAllDraws(@Query() dto: GetDashboardClientsDto) {
 		const data = await this.walimahService.getAllDraws(dto);
 		return successfulResponse(data);
 	}
 
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@CoreUserType(CoreUserEnum.CLIENT)
 	@Post('execute-draw')
 	async ExecuteDraw(@Body() dto: DrawIdentifier) {
 		const data = await this.walimahService.executeDraw(dto);
 		return successfulResponse(data);
 	}
-
+	
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@CoreUserType(CoreUserEnum.CLIENT)
 	@Delete('delete-draw')
 	async DeleteDraw(@Query() dto: DrawIdentifier) {
 		const data = await this.walimahService.deleteDraw(dto);

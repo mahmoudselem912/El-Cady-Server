@@ -136,6 +136,23 @@ model draw_winners {
   updatedAt     DateTime      @default(now()) @updatedAt
 }
 
+model ElCady_admin {
+  id        Int      @id @default(autoincrement())
+  adminName String
+  email     String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model walimah_dashboard_user {
+  id        Int      @id @default(autoincrement())
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
 enum Gender {
   Male
   Female
