@@ -6,6 +6,7 @@ import {
 	AddCouponDto,
 	AddDrawDto,
 	AddUserDto,
+	AddWalimahDashboardUserDto,
 	checkUserCodeDto,
 	GetDashboardClientsDto,
 	UploadCouponsSheetDto,
@@ -71,7 +72,7 @@ export class WalimahController {
 	}
 
 	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
 	@Post('add-coupon')
 	async AddCoupon(@Body() dto: AddCouponDto) {
@@ -80,7 +81,7 @@ export class WalimahController {
 	}
 
 	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
 	@Post('add-user-coupon')
 	async AddUserCoupon(@Body() dto: UserIdentifier) {
@@ -89,7 +90,7 @@ export class WalimahController {
 	}
 
 	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-dashboard-clients')
 	async GetDashboardClients(@Query() dto: GetDashboardClientsDto) {
@@ -98,7 +99,7 @@ export class WalimahController {
 	}
 
 	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-dashboard-coupons')
 	async GetDashboardCoupons(@Query() dto: GetDashboardClientsDto) {
@@ -107,7 +108,7 @@ export class WalimahController {
 	}
 
 	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
 	@Post('add-draw')
 	async AddDraw(@Body() dto: AddDrawDto) {
@@ -116,7 +117,7 @@ export class WalimahController {
 	}
 
 	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-all-draws')
 	async GetAllDraws(@Query() dto: GetDashboardClientsDto) {
@@ -125,20 +126,38 @@ export class WalimahController {
 	}
 
 	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
 	@Post('execute-draw')
 	async ExecuteDraw(@Body() dto: DrawIdentifier) {
 		const data = await this.walimahService.executeDraw(dto);
 		return successfulResponse(data);
 	}
-	
+
 	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)	
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
 	@Delete('delete-draw')
 	async DeleteDraw(@Query() dto: DrawIdentifier) {
 		const data = await this.walimahService.deleteDraw(dto);
+		return successfulResponse(data);
+	}
+
+	@Post('add-walimah-dashboard-user')
+	async AddWalimahDashboardUser(@Body() dto: AddWalimahDashboardUserDto) {
+		const data = await this.walimahService.addWalimahDashboardUser(dto);
+		return successfulResponse(data);
+	}
+
+	@Get('get-all-walimah-dashboard-users')
+	async GetAllWalimahDashboardUsers() {
+		const data = await this.walimahService.getAllWalimahDashboardUsers();
+		return successfulResponse(data);
+	}
+
+	@Delete('delete-walimah-dashboard-user')
+	async DeleteWalimahDashboardUser(@Query() dto: UserIdentifier) {
+		const data = await this.walimahService.deleteWalimahDashboardUser(dto);
 		return successfulResponse(data);
 	}
 }

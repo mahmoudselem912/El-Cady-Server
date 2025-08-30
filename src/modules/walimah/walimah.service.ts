@@ -8,6 +8,7 @@ import {
 	AddCouponDto,
 	AddDrawDto,
 	AddUserDto,
+	AddWalimahDashboardUserDto,
 	checkUserCodeDto,
 	GetDashboardClientsDto,
 	UploadCouponsSheetDto,
@@ -18,6 +19,7 @@ import { addPathToFiles, saveFilesOnServer } from 'src/utils/file.handler';
 import { ConfigService } from '@nestjs/config';
 import * as XLSX from 'xlsx';
 import { DrawIdentifier } from './dto/draw-identifier';
+import { hashPassword } from 'src/utils/bcrypt';
 
 @Injectable()
 export class WalimahService {
@@ -733,6 +735,73 @@ export class WalimahService {
 			return deletedDraw;
 		} catch (error) {
 			handleException(error, dto);
+		}
+	}
+
+	async addWalimahDashboardUser(dto: AddWalimahDashboardUserDto) {
+		try {
+			const ExistingUser = await this.prisma.walimah_dashboard_user.findFirst({
+				where: {
+					name: dto.name,
+				},
+			});
+
+			if (ExistingUser) {
+				throw new CustomBadRequestException('There is user with this name already');
+			}
+
+			const user = await this.prisma.walimah_dashboard_user.create({
+				data: {
+					name: dto.name,
+					password: await hashPassword(dto.password),
+				},
+			});
+
+			return 'User added successfully';
+		} catch (error) {
+			handleException(error, dto);
+		}
+	}
+
+	async getAllWalimahDashboardUsers() {
+		try {
+			const users = await this.prisma.walimah_dashboard_user.findMany({
+				select: {
+					id: true,
+					name: true,
+				},
+			});
+
+			return users;
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
+
+	async deleteWalimahDashboardUser(dto: UserIdentifier) {
+		try {
+			const ExistingUser = await this.prisma.walimah_dashboard_user.findFirst({
+				where: {
+					id: dto.user_id,
+				},
+			});
+
+			if (!ExistingUser) {
+				throw new CustomNotFoundException('User not found !');
+			}
+
+			const deletedUser = await this.prisma.walimah_dashboard_user.delete({
+				where: {
+					id: dto.user_id,
+				},
+				select: {
+					name: true,
+				},
+			});
+
+			return deletedUser;
+		} catch (error) {
+			handleException(error, {});
 		}
 	}
 }
