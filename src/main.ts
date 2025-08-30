@@ -213,7 +213,7 @@ async function bootstrap() {
 		logger.error('exit code:', code);
 	});
 
-	await app.listen(4009, '0.0.0.0');
+	await app.listen(4000, '0.0.0.0');
 }
 
 bootstrap();
