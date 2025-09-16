@@ -153,6 +153,17 @@ model walimah_dashboard_user {
   updatedAt DateTime @default(now()) @updatedAt
 }
 
+model Gento_users {
+  id        Int       @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String
+  otpCode   String?
+  otpExpiry DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
 enum Gender {
   Male
   Female

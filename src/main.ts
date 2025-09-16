@@ -83,9 +83,10 @@ async function bootstrap() {
 	const allowedOrigins = [
 		'http://localhost:5173',
 		'https://myapp.com',
-		'http://localhost:4009',
-		'https://localhost:4009',
-		'https://walimah.sawarwaerbah.com'
+		'http://localhost:4000',
+		'https://localhost:4000',
+		'https://walimah.sawarwaerbah.com',
+		'https://bilsan-imagen-gento.web.app',
 	];
 
 	app.enableCors({

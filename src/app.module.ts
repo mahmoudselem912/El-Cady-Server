@@ -9,6 +9,8 @@ import { ClientsModule } from './modules/clients/clients.module';
 import { WebBookUsersModule } from './modules/web-book-users/web-book-users.module';
 import { CountryModule } from './modules/country/country.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { GentoModule } from './modules/gento/gento.module';
+import { MailModule } from './modules/mail/mail.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -30,6 +32,8 @@ const ENV = process.env.NODE_ENV;
 		AuthModule,
 		WebBookUsersModule,
 		CountryModule,
+		GentoModule,
+		MailModule,
 	],
 	controllers: [],
 	providers: [
