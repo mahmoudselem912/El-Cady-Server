@@ -97,4 +97,13 @@ export class GentoService {
 
 		return { message: 'OTP resent successfully' };
 	}
+
+	async getAllGentoUsers() {
+		try {
+			const users = await this.prisma.gento_users.findMany();
+			return users;
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
 }

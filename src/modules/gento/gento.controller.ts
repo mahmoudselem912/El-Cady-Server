@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { GentoService } from './gento.service';
 import { successfulResponse } from 'src/utils/response.handler';
@@ -26,4 +26,10 @@ export class GentoController {
 		const data = await this.gentoService.resendOtp(dto);
 		return successfulResponse(data);
 	}
+
+    @Get('get-all-gento-users')
+    async GetAllGentoUsers() {
+        const data = await this.gentoService.getAllGentoUsers()
+        return successfulResponse(data)
+    }
 }
