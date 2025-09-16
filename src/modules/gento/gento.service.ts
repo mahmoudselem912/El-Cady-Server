@@ -15,40 +15,43 @@ export class GentoService {
 	private generateOtp(): string {
 		return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
 	}
-
 	async createUser(dto: CreateUserDto) {
 		try {
-			const ExistingEmail = await this.prisma.gento_users.findFirst({
-				where: {
-					email: dto.email,
-				},
+			// 1. Check if user already exists
+			let user = await this.prisma.gento_users.findFirst({
+				where: { email: dto.email },
 			});
 
-			if (ExistingEmail) {
-				throw new CustomBadRequestException('This Email is already declared');
+			// 2. Generate OTP and expiry
+			const otp = this.generateOtp();
+			const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+			if (user) {
+				// ✅ Update OTP for existing user
+				await this.prisma.gento_users.update({
+					where: { id: user.id },
+					data: {
+						otpCode: otp,
+						otpExpiry: expiry,
+					},
+				});
+			} else {
+				// ✅ Create new user and set OTP
+				user = await this.prisma.gento_users.create({
+					data: {
+						firstName: dto.firstName,
+						lastName: dto.lastName,
+						email: dto.email,
+						otpCode: otp,
+						otpExpiry: expiry,
+					},
+				});
 			}
 
-			const user = await this.prisma.gento_users.create({
-				data: {
-					firstName: dto.firstName,
-					lastName: dto.lastName,
-					email: dto.email,
-				},
-			});
-
-			const otp = this.generateOtp();
-			const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min
-
-			await this.prisma.gento_users.update({
-				where: { id: user.id },
-				data: {
-					otpCode: otp,
-					otpExpiry: expiry,
-				},
-			});
-
+			// 3. Send OTP by email
 			await this.mailService.sendOtp(dto.email, otp);
-			return { message: 'User created / updated and OTP sent to email' };
+
+			return { message: 'OTP sent to email successfully' };
 		} catch (error) {
 			handleException(error, dto);
 		}
