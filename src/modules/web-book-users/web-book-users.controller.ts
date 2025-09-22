@@ -27,8 +27,8 @@ export class WebBookUsersController {
     }
 
     @Delete('delete-all-webBook-users')
-    async DeleteAllWebBookUsers() {
-        const data = await this.webBookUsersService.deleteAllUsers()
+    async DeleteAllWebBookUsers(@Query() dto: ClientIdentifier) {
+        const data = await this.webBookUsersService.deleteAllUsers(dto)
         return successfulResponse(data)
     }
 
