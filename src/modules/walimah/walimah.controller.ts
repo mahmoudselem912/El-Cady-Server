@@ -80,9 +80,9 @@ export class WalimahController {
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Post('add-user-coupon')
 	async AddUserCoupon(@Body() dto: UserIdentifier) {
 		const data = await this.walimahService.addUserCoupon(dto);
