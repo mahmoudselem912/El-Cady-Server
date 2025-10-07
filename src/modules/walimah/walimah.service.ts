@@ -20,6 +20,7 @@ import { ConfigService } from '@nestjs/config';
 import * as XLSX from 'xlsx';
 import { DrawIdentifier } from './dto/draw-identifier';
 import { hashPassword } from 'src/utils/bcrypt';
+import { CouponCompany, Prisma } from '@prisma/client';
 
 @Injectable()
 export class WalimahService {
@@ -382,39 +383,91 @@ export class WalimahService {
 
 	async addUserCoupon(dto: UserIdentifier) {
 		try {
-			const ExistingUser = await this.prisma.walimah_users.findFirst({
+			// 1️⃣ Validate user
+			const user = await this.prisma.walimah_users.findUnique({
+				where: { id: dto.user_id },
+			});
+			if (!user) throw new CustomNotFoundException('User not found!');
+
+			// 2️⃣ Fetch all coupons and their companies
+			const allCoupons = await this.prisma.coupons.findMany({
+				select: { id: true, company: true },
+			});
+
+			// 3️⃣ Fetch all assigned coupons
+			const allUserCoupons = await this.prisma.user_Coupons.findMany({
+				select: { coupon_id: true },
+			});
+
+			// 4️⃣ Build a map of coupon_id → company
+			const couponCompanyMap = new Map<number, string>();
+			for (const c of allCoupons) {
+				couponCompanyMap.set(c.id, c.company);
+			}
+
+			// 5️⃣ Count usage per company (in JS)
+			const usageMap: Record<string, number> = {};
+			for (const company of Object.values(CouponCompany)) {
+				usageMap[company] = 0;
+			}
+
+			for (const uc of allUserCoupons) {
+				const company = couponCompanyMap.get(uc.coupon_id);
+				if (company) usageMap[company] += 1;
+			}
+
+			// 6️⃣ Find least used company
+			const allCompanies = Object.values(CouponCompany);
+			let leastUsedCompany = allCompanies.reduce((min, current) =>
+				usageMap[current] < usageMap[min] ? current : min,
+			);
+
+			// 7️⃣ Check available companies (skip empty ones)
+			let availableCompany: CouponCompany | null = null;
+
+			for (const company of allCompanies.sort((a, b) => usageMap[a] - usageMap[b])) {
+				const availableCount = await this.prisma.coupons.count({
+					where: {
+						company,
+						user_Coupons: { none: {} }, // unused coupons only
+					},
+				});
+				if (availableCount > 0) {
+					availableCompany = company;
+					break;
+				}
+			}
+
+			if (!availableCompany) {
+				throw new CustomNotFoundException('All coupons have been used!');
+			}
+
+			// 8️⃣ Pick random unused coupon from that company
+			const totalAvailable = await this.prisma.coupons.count({
 				where: {
-					id: dto.user_id,
+					company: availableCompany,
+					user_Coupons: { none: {} },
 				},
 			});
 
-			if (!ExistingUser) {
-				throw new CustomNotFoundException('User not found!');
-			}
-
-			// 1️⃣ Count coupons
-			const totalCoupons = await this.prisma.coupons.count();
-			if (totalCoupons === 0) {
-				throw new CustomNotFoundException('No coupons available');
-			}
-
-			// 2️⃣ Pick a random offset
-			const randomIndex = Math.floor(Math.random() * totalCoupons);
-
-			// 3️⃣ Fetch one random coupon
+			const randomIndex = Math.floor(Math.random() * totalAvailable);
 			const randomCoupon = await this.prisma.coupons.findFirst({
+				where: {
+					company: availableCompany,
+					user_Coupons: { none: {} },
+				},
 				skip: randomIndex,
 				take: 1,
 			});
 
 			if (!randomCoupon) {
-				throw new CustomNotFoundException('Failed to select coupon');
+				throw new CustomNotFoundException('No available coupon found');
 			}
 
-			// 4️⃣ Assign to user
-			await this.prisma.user_Coupons.create({
+			// 9️⃣ Assign coupon to user
+			const assigned = await this.prisma.user_Coupons.create({
 				data: {
-					user_id: ExistingUser.id,
+					user_id: user.id,
 					coupon_id: randomCoupon.id,
 				},
 				include: {
@@ -422,7 +475,8 @@ export class WalimahService {
 				},
 			});
 
-			return randomCoupon;
+			// ✅ Return the assigned coupon
+			return assigned.coupon;
 		} catch (error) {
 			handleException(error, dto);
 		}
