@@ -15,15 +15,15 @@ import {
 } from './custom.exceptions';
 
 export function handleException(error: Error, data: any = undefined) {
-	const genericMessage = 'Something went wrong, please contact deep blue support!';
+	const genericMessage = 'Something went wrong, please contact Elcady support!';
 
 	if (error instanceof PrismaClientKnownRequestError) {
 		if (error.code === 'P2002') {
 			throw new UniqueConstraintViolationException(
-				'Entity with this unique constraint already exists! Please contact deep blue support!',
+				'Entity with this unique constraint already exists! Please contact Elcady support!',
 			);
 		}
-		throw new BadRequestException("Can't perform this action! Please contact deep blue support!");
+		throw new BadRequestException("Can't perform this action! Please contact Elcady support!");
 	}
 	if (error instanceof HttpException) {
 		throw error;
