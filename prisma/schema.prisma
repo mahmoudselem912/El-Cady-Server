@@ -75,7 +75,7 @@ model user_Coupons {
   user_id   Int
   user      walimah_users @relation(fields: [user_id], references: [id], onDelete: Cascade)
   coupon_id Int
-  coupon    Coupons       @relation(fields: [coupon_id], references: [id])
+  coupon    Coupons       @relation(fields: [coupon_id], references: [id], onDelete: Cascade)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @default(now()) @updatedAt
 }
