@@ -781,7 +781,7 @@ export class WalimahService {
 				take: pageItemsCount,
 				orderBy: { createdAt: 'desc' },
 			});
-			
+
 			const totalFilteredUsers = await this.prisma.walimah_dashboard_user.count({
 				where: {
 					name: {
@@ -825,6 +825,15 @@ export class WalimahService {
 			});
 
 			return deletedUser;
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
+
+	async deleteAllCoupons() {
+		try {
+			const deletedCoupons = await this.prisma.coupons.deleteMany();
+			return deletedCoupons;
 		} catch (error) {
 			handleException(error, {});
 		}

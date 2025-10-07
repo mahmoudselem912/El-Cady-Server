@@ -89,6 +89,12 @@ export class WalimahController {
 		return successfulResponse(data);
 	}
 
+	@Delete('delete-all-coupons')
+	async DeleteAllCoupons() {
+		const data = await this.walimahService.deleteAllCoupons();
+		return successfulResponse(data);
+	}
+
 	@ApiBearerAuth()
 	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
@@ -160,7 +166,7 @@ export class WalimahController {
 		const data = await this.walimahService.getAllWalimahDashboardUsers(dto);
 		return successfulResponse(data);
 	}
-	
+
 	@ApiBearerAuth()
 	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
