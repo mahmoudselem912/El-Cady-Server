@@ -362,8 +362,8 @@ export class WalimahService {
 						company: row[1]?.toString().trim(), // Column B
 						type: row[2]?.toString().trim(), // Column C
 						value: row[3]?.toString().trim(), // Column D
-						startDate: new Date(row[4]), // Column E
-						endDate: new Date(row[5]), // Column F
+						// startDate: new Date(row[4]), // Column E
+						// endDate: new Date(row[5]), // Column F
 					};
 				})
 				.filter((c) => c.name); // filter out empty rows
@@ -544,8 +544,8 @@ export class WalimahService {
 			const code = await this.prisma.coupons.create({
 				data: {
 					name: dto.code,
-					startDate: new Date(dto.startDate),
-					endDate: new Date(dto.endDate),
+					// startDate: new Date(dto.startDate),
+					// endDate: new Date(dto.endDate),
 					company: dto.company,
 					type: dto.type,
 					value: dto.value,
