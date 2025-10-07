@@ -65,8 +65,8 @@ model Coupons {
   company      CouponCompany
   type         CouponType
   value        String
-  startDate    DateTime
-  endDate      DateTime
+  // startDate    DateTime
+  // endDate      DateTime
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @default(now()) @updatedAt
   user_Coupons user_Coupons[]
