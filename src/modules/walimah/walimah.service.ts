@@ -359,9 +359,11 @@ export class WalimahService {
 				.map((row: any[]) => {
 					return {
 						name: row[0]?.toString().trim(), // Column A
-						precentage: row[2]?.toString().trim(), // Column C
-						startDate: new Date(row[3]), // Column D
-						endDate: new Date(row[4]), // Column E
+						company: row[1]?.toString().trim(), // Column B
+						type: row[2]?.toString().trim(), // Column C
+						value: row[3]?.toString().trim(), // Column D
+						startDate: new Date(row[4]), // Column E
+						endDate: new Date(row[5]), // Column F
 					};
 				})
 				.filter((c) => c.name); // filter out empty rows
@@ -544,7 +546,9 @@ export class WalimahService {
 					name: dto.code,
 					startDate: new Date(dto.startDate),
 					endDate: new Date(dto.endDate),
-					precentage: dto.percentage,
+					company: dto.company,
+					type: dto.type,
+					value: dto.value,
 				},
 			});
 

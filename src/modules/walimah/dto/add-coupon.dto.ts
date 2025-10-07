@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty, IsString } from 'class-validator';
+import { CouponCompany, CouponType } from '@prisma/client';
+import { IsDateString, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 export class AddCouponDto {
 	@ApiProperty({ example: 'Code' })
@@ -7,10 +8,18 @@ export class AddCouponDto {
 	@IsNotEmpty()
 	code: string;
 
+	@ApiProperty({ example: CouponCompany.Noon })
+	@IsEnum(CouponCompany)
+	company: CouponCompany;
+
+	@ApiProperty({ example: CouponType.Percentage })
+	@IsEnum(CouponType)
+	type: CouponType;
+
 	@ApiProperty({ example: 'Code' })
 	@IsString()
 	@IsNotEmpty()
-	percentage: string;
+	value: string;
 
 	@ApiProperty({ example: '2025-01-01' })
 	@IsDateString()

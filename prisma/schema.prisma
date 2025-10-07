@@ -62,7 +62,9 @@ model weBook_users {
 model Coupons {
   id           Int            @id @default(autoincrement())
   name         String
-  precentage   String
+  company      CouponCompany
+  type         CouponType
+  value        String
   startDate    DateTime
   endDate      DateTime
   createdAt    DateTime       @default(now())
@@ -178,4 +180,15 @@ enum DrawStatus {
   Scheduled
   Completed
   Active
+}
+
+enum CouponCompany {
+  Noon
+  SaifGallery
+  CuisinePlus
+}
+
+enum CouponType {
+  Percentage
+  Value
 }
