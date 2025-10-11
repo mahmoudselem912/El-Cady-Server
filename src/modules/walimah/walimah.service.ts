@@ -247,6 +247,29 @@ export class WalimahService {
 		}
 	}
 
+	async getAllWalimahUsers() {
+		try {
+			const users = await this.prisma.walimah_users.findMany();
+			return users;
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
+
+	async deleteWalimahUser(dto: UserIdentifier) {
+		try {
+			const User = await this.prisma.walimah_users.delete({
+				where: {
+					id: dto.user_id,
+				},
+			});
+
+			return User;
+		} catch (error) {
+			handleException(error, dto);
+		}
+	}
+
 	async checkUserCode(dto: checkUserCodeDto) {
 		try {
 			const ExistingUser = await this.prisma.walimah_users.findFirst({

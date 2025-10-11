@@ -39,6 +39,18 @@ export class WalimahController {
 		return successfulResponse(data);
 	}
 
+	@Get('get-all-walimah-users')
+	async GetAllWalimahUsers() {
+		const data = await this.walimahService.getAllWalimahUsers();
+		return successfulResponse(data);
+	}
+
+	@Delete('delete-walimah-user')
+	async DeleteWalimahUser(@Query() dto: UserIdentifier) {
+		const data = await this.walimahService.deleteWalimahUser(dto);
+		return successfulResponse(data);
+	}
+
 	@Get('check-user-code')
 	async CheckUserCode(@Query() dto: checkUserCodeDto) {
 		const data = await this.walimahService.checkUserCode(dto);
@@ -149,9 +161,9 @@ export class WalimahController {
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Post('add-walimah-dashboard-user')
 	async AddWalimahDashboardUser(@Body() dto: AddWalimahDashboardUserDto) {
 		const data = await this.walimahService.addWalimahDashboardUser(dto);
