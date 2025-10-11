@@ -20,7 +20,7 @@ import { ConfigService } from '@nestjs/config';
 import * as XLSX from 'xlsx';
 import { DrawIdentifier } from './dto/draw-identifier';
 import { hashPassword } from 'src/utils/bcrypt';
-import { CouponCompany, Prisma } from '@prisma/client';
+import { CouponCompany, Prisma, walimah_dashboard_user } from '@prisma/client';
 
 @Injectable()
 export class WalimahService {
@@ -915,6 +915,20 @@ export class WalimahService {
 		try {
 			const deletedCoupons = await this.prisma.coupons.deleteMany();
 			return deletedCoupons;
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
+
+	async getDashboardUserProfile(userData: walimah_dashboard_user) {
+		try {
+			const user = await this.prisma.walimah_dashboard_user.findFirst({
+				where: {
+					id: userData.id,
+				},
+			});
+
+			return user;
 		} catch (error) {
 			handleException(error, {});
 		}

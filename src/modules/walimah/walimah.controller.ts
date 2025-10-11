@@ -16,7 +16,8 @@ import {
 import { successfulResponse } from 'src/utils/response.handler';
 import { DrawIdentifier } from './dto/draw-identifier';
 import { AuthorizeCoreUsersGuard, JwtGuard } from '../auth/guard';
-import { CoreUserEnum, CoreUserType } from '../auth/decorator';
+import { CoreUserEnum, CoreUserType, GetUser } from '../auth/decorator';
+import { walimah_dashboard_user, walimah_users } from '@prisma/client';
 
 @Controller('walimah')
 @ApiTags('Walimah')
@@ -185,6 +186,15 @@ export class WalimahController {
 	@Delete('delete-walimah-dashboard-user')
 	async DeleteWalimahDashboardUser(@Query() dto: UserIdentifier) {
 		const data = await this.walimahService.deleteWalimahDashboardUser(dto);
+		return successfulResponse(data);
+	}
+
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	@CoreUserType(CoreUserEnum.CLIENT)
+	@Get('get-dashboard-user-profile')
+	async GetDashboardUserProfile(@GetUser() user: walimah_dashboard_user) {
+		const data = await this.walimahService.getDashboardUserProfile(user);
 		return successfulResponse(data);
 	}
 }

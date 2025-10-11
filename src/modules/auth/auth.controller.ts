@@ -51,4 +51,5 @@ export class AuthController {
 		});
 		return successfulResponse('success');
 	}
+
 }
