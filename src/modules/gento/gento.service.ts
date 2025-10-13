@@ -4,6 +4,8 @@ import { CreateUserDto, ResendOtpDto, VerifyOtpDto } from './dto';
 import { handleException } from 'src/utils/error.handler';
 import { CustomBadRequestException, CustomNotFoundException } from 'src/utils/custom.exceptions';
 import { MailService } from '../mail/mail.service';
+import * as XLSX from 'xlsx';
+import { FastifyReply } from 'fastify';
 
 @Injectable()
 export class GentoService {
@@ -108,5 +110,40 @@ export class GentoService {
 		} catch (error) {
 			handleException(error, {});
 		}
+	}
+
+	async exportUsersToExcel(reply: FastifyReply) {
+		// 1️⃣ Fetch users
+		const users = await this.prisma.gento_users.findMany({
+			select: {
+				id: true,
+				firstName: true,
+				lastName: true,
+				email: true,
+			},
+			orderBy: { id: 'asc' },
+		});
+
+		// 2️⃣ Map data for Excel
+		const data = users.map((u, index) => ({
+			ID: index + 1, // incremental id in the sheet
+			'First Name': u.firstName,
+			'Last Name': u.lastName,
+			Email: u.email,
+		}));
+
+		// 3️⃣ Create a worksheet & workbook
+		const worksheet = XLSX.utils.json_to_sheet(data);
+		const workbook = XLSX.utils.book_new();
+		XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+
+		// 4️⃣ Generate buffer
+		const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+		// 5️⃣ Send file via Fastify
+		reply
+			.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+			.header('Content-Disposition', 'attachment; filename="GentoUsers.xlsx"')
+			.send(buffer);
 	}
 }

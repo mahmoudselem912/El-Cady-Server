@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { GentoService } from './gento.service';
 import { successfulResponse } from 'src/utils/response.handler';
 import { CreateUserDto, ResendOtpDto, VerifyOtpDto } from './dto';
+import { FastifyReply } from 'fastify';
 
 @Controller('gento')
 @ApiTags('Gento')
@@ -27,9 +28,14 @@ export class GentoController {
 		return successfulResponse(data);
 	}
 
-    @Get('get-all-gento-users')
-    async GetAllGentoUsers() {
-        const data = await this.gentoService.getAllGentoUsers()
-        return successfulResponse(data)
-    }
+	@Get('get-all-gento-users')
+	async GetAllGentoUsers() {
+		const data = await this.gentoService.getAllGentoUsers();
+		return successfulResponse(data);
+	}
+
+	@Get('export-users')
+	async exportUsers(@Res() reply: FastifyReply) {
+		return await this.gentoService.exportUsersToExcel(reply);
+	}
 }
