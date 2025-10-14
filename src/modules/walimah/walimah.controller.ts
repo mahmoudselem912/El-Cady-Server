@@ -197,4 +197,13 @@ export class WalimahController {
 		const data = await this.walimahService.getDashboardUserProfile(user);
 		return successfulResponse(data);
 	}
+
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	@CoreUserType(CoreUserEnum.CLIENT)
+	@Get('get-statistics')
+	async GetStatistics(@GetUser() user: walimah_dashboard_user) {
+		const data = await this.walimahService.getStatitics();
+		return successfulResponse(data);
+	}
 }

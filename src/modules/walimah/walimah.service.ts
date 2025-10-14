@@ -933,4 +933,63 @@ export class WalimahService {
 			handleException(error, {});
 		}
 	}
+
+	async getStatitics() {
+		try {
+			const totalCoupons = await this.prisma.coupons.count();
+
+			// 2) Total coupons that are assigned to at least one user
+			//    (coupons with user_Coupons.some exists)
+			const totalCouponsAssigned = await this.prisma.coupons.count({
+				where: {
+					user_Coupons: {
+						some: {}, // any relation -> counts that coupon
+					},
+				},
+			});
+
+			// 3) (Optional) total assignments in user_Coupons (how many user-coupon rows exist)
+			const totalAssignments = await this.prisma.user_Coupons.count();
+
+			// 4) Total coupons grouped by company (all coupons)
+			const couponsByCompanyRaw = await this.prisma.coupons.groupBy({
+				by: ['company'],
+				_count: { id: true },
+			});
+			const couponsByCompany = couponsByCompanyRaw.reduce(
+				(acc, item) => {
+					acc[item.company] = item._count.id;
+					return acc;
+				},
+				{} as Record<string, number>,
+			);
+
+			// 5) Assigned coupons grouped by company (count coupons per company that have at least one user relation)
+			//    We can do this by grouping coupons but filtering where user_Coupons.some exists.
+			const assignedByCompanyRaw = await this.prisma.coupons.groupBy({
+				by: ['company'],
+				where: {
+					user_Coupons: { some: {} },
+				},
+				_count: { id: true },
+			});
+			const assignedCouponsByCompany = assignedByCompanyRaw.reduce(
+				(acc, item) => {
+					acc[item.company] = item._count.id;
+					return acc;
+				},
+				{} as Record<string, number>,
+			);
+
+			return {
+				totalCoupons,
+				totalCouponsAssigned,
+				totalAssignments,
+				couponsByCompany,
+				assignedCouponsByCompany,
+			};
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
 }
