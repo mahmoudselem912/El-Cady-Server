@@ -981,12 +981,20 @@ export class WalimahService {
 				{} as Record<string, number>,
 			);
 
+			// 6) Total clients
+			const totalClients = await this.prisma.walimah_users.count();
+
+			// 7) Total uploaded bills
+			const totalBills = await this.prisma.walimah_users_bills.count();
+
 			return {
 				totalCoupons,
 				totalCouponsAssigned,
 				totalAssignments,
 				couponsByCompany,
 				assignedCouponsByCompany,
+				totalClients,
+				totalBills,
 			};
 		} catch (error) {
 			handleException(error, {});
