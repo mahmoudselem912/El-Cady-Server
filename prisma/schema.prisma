@@ -186,6 +186,7 @@ enum CouponCompany {
   Noon
   SaifGallery
   CuisinePlus
+  Platinum
 }
 
 enum CouponType {
