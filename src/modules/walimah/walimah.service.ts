@@ -995,6 +995,27 @@ export class WalimahService {
 				},
 			});
 
+			const allUsers = await this.prisma.walimah_users.findMany({
+				include: {
+					user_Coupons: true,
+					walimah_users_bills: true,
+				},
+			});
+
+			// 2️⃣ Build code usage map
+			const usageMap: Record<string, number> = {};
+			for (const u of allUsers) {
+				if (u.usedCode) {
+					usageMap[u.usedCode] = (usageMap[u.usedCode] || 0) + 1;
+				}
+			}
+			const enrichedAllUsers = allUsers.map((u) => ({
+				...u,
+				sharedCount: u.code ? usageMap[u.code] || 0 : 0,
+			}));
+
+			const sharedUsersCount = enrichedAllUsers.filter((u) => u.sharedCount > 0).length;
+
 			return {
 				totalCoupons,
 				totalCouponsAssigned,
@@ -1003,7 +1024,8 @@ export class WalimahService {
 				assignedCouponsByCompany,
 				totalClients,
 				totalBills,
-				totalUsersWonCoupons
+				totalUsersWonCoupons,
+				sharedUsersCount
 			};
 		} catch (error) {
 			handleException(error, {});
