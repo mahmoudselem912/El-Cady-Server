@@ -997,7 +997,11 @@ export class WalimahService {
 
 			const allUsers = await this.prisma.walimah_users.findMany({
 				include: {
-					user_Coupons: true,
+					user_Coupons: {
+						include: {
+							coupon: true,
+						},
+					},
 					walimah_users_bills: true,
 				},
 			});
@@ -1016,6 +1020,32 @@ export class WalimahService {
 
 			const sharedUsersCount = enrichedAllUsers.filter((u) => u.sharedCount > 0).length;
 
+			// Aggregate data in JS
+			const leaderboard = allUsers.map((user) => {
+				const billsCount = user.walimah_users_bills.length;
+				const couponsCount = user.user_Coupons.length;
+				const totalCouponValue = user.user_Coupons.reduce((sum, uc) => sum + (+uc.coupon?.value || 0), 0);
+
+				return {
+					id: user.id,
+					name: user.name,
+					billsCount,
+					couponsCount,
+					totalCouponValue,
+				};
+			});
+
+			// Sort by totalCouponValue or billsCount (you can customize sorting priority)
+			const sorted = leaderboard.sort(
+				(a, b) =>
+					b.totalCouponValue - a.totalCouponValue ||
+					b.couponsCount - a.couponsCount ||
+					b.billsCount - a.billsCount,
+			);
+
+			// Return top 10
+			const leaders =  sorted.slice(0, 10);
+
 			return {
 				totalCoupons,
 				totalCouponsAssigned,
@@ -1025,7 +1055,8 @@ export class WalimahService {
 				totalClients,
 				totalBills,
 				totalUsersWonCoupons,
-				sharedUsersCount
+				sharedUsersCount,
+				leaders
 			};
 		} catch (error) {
 			handleException(error, {});
