@@ -1019,32 +1019,46 @@ export class WalimahService {
 			}));
 
 			const sharedUsersCount = enrichedAllUsers.filter((u) => u.sharedCount > 0).length;
+			const sharedCounts = await this.prisma.walimah_users.groupBy({
+				by: ['usedCode'],
+				_count: { usedCode: true },
+				where: {
+					usedCode: { not: null },
+				},
+			});
+
+			// Convert the counts into an easy lookup
+			const sharedCountMap = sharedCounts.reduce(
+				(acc, item) => {
+					acc[item.usedCode] = item._count.usedCode;
+					return acc;
+				},
+				{} as Record<string, number>,
+			);
 
 			// Aggregate data in JS
 			const leaderboard = allUsers.map((user) => {
 				const billsCount = user.walimah_users_bills.length;
 				const couponsCount = user.user_Coupons.length;
-				const totalCouponValue = user.user_Coupons.reduce((sum, uc) => sum + (+uc.coupon?.value || 0), 0);
+				const sharedCount = sharedCountMap[user.code] || 0;
 
 				return {
 					id: user.id,
 					name: user.name,
 					billsCount,
 					couponsCount,
-					totalCouponValue,
+					sharedCount,
 				};
 			});
 
 			// Sort by totalCouponValue or billsCount (you can customize sorting priority)
 			const sorted = leaderboard.sort(
 				(a, b) =>
-					b.totalCouponValue - a.totalCouponValue ||
-					b.couponsCount - a.couponsCount ||
-					b.billsCount - a.billsCount,
+					b.sharedCount - a.sharedCount || b.couponsCount - a.couponsCount || b.billsCount - a.billsCount,
 			);
 
 			// Return top 10
-			const leaders =  sorted.slice(0, 10);
+			const leaders = sorted.slice(0, 10);
 
 			return {
 				totalCoupons,
@@ -1056,7 +1070,7 @@ export class WalimahService {
 				totalBills,
 				totalUsersWonCoupons,
 				sharedUsersCount,
-				leaders
+				leaders,
 			};
 		} catch (error) {
 			handleException(error, {});
