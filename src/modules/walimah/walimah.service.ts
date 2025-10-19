@@ -1069,6 +1069,14 @@ export class WalimahService {
 				freeCouponsByCompany[company] = total - assigned;
 			}
 
+			const totalUsersUploadedBills = await this.prisma.walimah_users.count({
+				where: {
+					walimah_users_bills: {
+						some: {}, // means user has at least one related bill
+					},
+				},
+			});
+
 			return {
 				totalCoupons: totalCoupons - totalAssignments,
 				totalCouponsAssigned,
@@ -1076,6 +1084,7 @@ export class WalimahService {
 				couponsByCompany: freeCouponsByCompany,
 				assignedCouponsByCompany,
 				totalClients,
+				totalUsersUploadedBills,
 				totalBills,
 				totalUsersWonCoupons,
 				sharedUsersCount,
