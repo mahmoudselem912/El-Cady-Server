@@ -1106,9 +1106,9 @@ export class WalimahService {
 					const idsToDelete = couponsToDelete.map((c) => c.id);
 
 					// Uncomment when ready
-					// await this.prisma.user_Coupons.deleteMany({
-					//   where: { id: { in: idsToDelete } },
-					// });
+					await this.prisma.user_Coupons.deleteMany({
+					  where: { id: { in: idsToDelete } },
+					});
 
 					console.log(`User ${user.id}: coupons=${couponsCount}, bills=${billsCount}, deleted=${extra}`);
 
