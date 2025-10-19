@@ -1076,4 +1076,46 @@ export class WalimahService {
 			handleException(error, {});
 		}
 	}
+
+	async deleteExtraCoupons() {
+		try {
+			const users = await this.prisma.walimah_users.findMany({
+				include: {
+					_count: {
+						select: {
+							walimah_users_bills: true,
+							user_Coupons: true,
+						},
+					},
+				},
+			});
+
+			const usersWithExtraCoupons = users.filter((u) => u._count.user_Coupons > u._count.walimah_users_bills);
+
+			let extraCount = 0
+			for (const user of usersWithExtraCoupons) {
+				const { id, _count } = user;
+				const extra = _count.user_Coupons - _count.walimah_users_bills;
+
+				const coupons = await this.prisma.user_Coupons.findMany({
+					where: { user_id: id },
+					orderBy: { createdAt: 'asc' }, // delete oldest first
+					take: extra, // only select the extras
+				});
+
+				const couponIdsToDelete = coupons.map((c) => c.id);
+
+				// await this.prisma.user_Coupons.deleteMany({
+				// 	where: { id: { in: couponIdsToDelete } },
+				// });
+
+				console.log(`Deleted ${extra} coupons for user ${id}`);
+				extraCount += extra
+			}
+
+			return extraCount;
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
 }
