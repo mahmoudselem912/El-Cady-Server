@@ -956,6 +956,7 @@ export class WalimahService {
 				by: ['company'],
 				_count: { id: true },
 			});
+
 			const couponsByCompany = couponsByCompanyRaw.reduce(
 				(acc, item) => {
 					acc[item.company] = item._count.id;
@@ -1061,7 +1062,7 @@ export class WalimahService {
 			const leaders = sorted.slice(0, 10);
 
 			return {
-				totalCoupons,
+				totalCoupons : totalCoupons - totalAssignments,
 				totalCouponsAssigned,
 				totalAssignments,
 				couponsByCompany,
