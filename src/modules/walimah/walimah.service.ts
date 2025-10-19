@@ -1079,41 +1079,45 @@ export class WalimahService {
 
 	async deleteExtraCoupons() {
 		try {
+			// Get all users with their counts
 			const users = await this.prisma.walimah_users.findMany({
 				include: {
-					_count: {
-						select: {
-							walimah_users_bills: true,
-							user_Coupons: true,
-						},
-					},
+					walimah_users_bills: true,
+					user_Coupons: true,
 				},
 			});
 
-			const usersWithExtraCoupons = users.filter((u) => u._count.user_Coupons > u._count.walimah_users_bills);
+			let totalDeleted = 0;
 
-			let extraCount = 0
-			for (const user of usersWithExtraCoupons) {
-				const { id, _count } = user;
-				const extra = _count.user_Coupons - _count.walimah_users_bills;
+			for (const user of users) {
+				const billsCount = user.walimah_users_bills.length;
+				const couponsCount = user.user_Coupons.length;
 
-				const coupons = await this.prisma.user_Coupons.findMany({
-					where: { user_id: id },
-					orderBy: { createdAt: 'asc' }, // delete oldest first
-					take: extra, // only select the extras
-				});
+				// user considered "used" if usedCode not null
+				const userHasUsedCoupon = !!user.usedCode;
 
-				const couponIdsToDelete = coupons.map((c) => c.id);
+				if (userHasUsedCoupon && couponsCount > billsCount) {
+					const extra = couponsCount - billsCount;
 
-				// await this.prisma.user_Coupons.deleteMany({
-				// 	where: { id: { in: couponIdsToDelete } },
-				// });
+					const couponsToDelete = user.user_Coupons
+						.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+						.slice(0, extra);
 
-				console.log(`Deleted ${extra} coupons for user ${id}`);
-				extraCount += extra
+					const idsToDelete = couponsToDelete.map((c) => c.id);
+
+					// Uncomment after verifying
+					// await this.prisma.user_Coupons.deleteMany({
+					//   where: { id: { in: idsToDelete } },
+					// });
+
+					console.log(`User ${user.id} has ${couponsCount} coupons, ${billsCount} bills — deleted ${extra}`);
+
+					totalDeleted += extra;
+				}
 			}
 
-			return extraCount;
+			console.log(`Total coupons deleted: ${totalDeleted}`);
+			return totalDeleted;
 		} catch (error) {
 			handleException(error, {});
 		}
