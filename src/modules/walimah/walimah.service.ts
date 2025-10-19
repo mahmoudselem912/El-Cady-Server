@@ -974,6 +974,7 @@ export class WalimahService {
 				},
 				_count: { id: true },
 			});
+
 			const assignedCouponsByCompany = assignedByCompanyRaw.reduce(
 				(acc, item) => {
 					acc[item.company] = item._count.id;
@@ -1061,11 +1062,18 @@ export class WalimahService {
 			// Return top 10
 			const leaders = sorted.slice(0, 10);
 
+			const freeCouponsByCompany: Record<string, number> = {};
+
+			for (const [company, total] of Object.entries(couponsByCompany)) {
+				const assigned = assignedCouponsByCompany[company] || 0;
+				freeCouponsByCompany[company] = total - assigned;
+			}
+
 			return {
-				totalCoupons : totalCoupons - totalAssignments,
+				totalCoupons: totalCoupons - totalAssignments,
 				totalCouponsAssigned,
 				totalAssignments,
-				couponsByCompany,
+				couponsByCompany: freeCouponsByCompany,
 				assignedCouponsByCompany,
 				totalClients,
 				totalBills,
@@ -1108,7 +1116,7 @@ export class WalimahService {
 
 					// Uncomment when ready
 					await this.prisma.user_Coupons.deleteMany({
-					  where: { id: { in: idsToDelete } },
+						where: { id: { in: idsToDelete } },
 					});
 
 					console.log(`User ${user.id}: coupons=${couponsCount}, bills=${billsCount}, deleted=${extra}`);
