@@ -1079,7 +1079,7 @@ export class WalimahService {
 
 	async deleteExtraCoupons() {
 		try {
-			// Get all users with their counts
+			// Get all users, with their bills and coupons
 			const users = await this.prisma.walimah_users.findMany({
 				include: {
 					walimah_users_bills: true,
@@ -1089,14 +1089,14 @@ export class WalimahService {
 
 			let totalDeleted = 0;
 
-			for (const user of users) {
+			// Only include users who actually used coupons
+			const usedUsers = users.filter((u) => u.usedCode !== null);
+
+			for (const user of usedUsers) {
 				const billsCount = user.walimah_users_bills.length;
 				const couponsCount = user.user_Coupons.length;
 
-				// user considered "used" if usedCode not null
-				const userHasUsedCoupon = !!user.usedCode;
-
-				if (userHasUsedCoupon && couponsCount > billsCount) {
+				if (couponsCount > billsCount) {
 					const extra = couponsCount - billsCount;
 
 					const couponsToDelete = user.user_Coupons
@@ -1105,18 +1105,18 @@ export class WalimahService {
 
 					const idsToDelete = couponsToDelete.map((c) => c.id);
 
-					// Uncomment after verifying
+					// Uncomment when ready
 					// await this.prisma.user_Coupons.deleteMany({
 					//   where: { id: { in: idsToDelete } },
 					// });
 
-					console.log(`User ${user.id} has ${couponsCount} coupons, ${billsCount} bills — deleted ${extra}`);
+					console.log(`User ${user.id}: coupons=${couponsCount}, bills=${billsCount}, deleted=${extra}`);
 
 					totalDeleted += extra;
 				}
 			}
 
-			console.log(`Total coupons deleted: ${totalDeleted}`);
+			console.log(`Total deleted coupons: ${totalDeleted}`);
 			return totalDeleted;
 		} catch (error) {
 			handleException(error, {});
