@@ -463,7 +463,7 @@ export class WalimahService {
 		try {
 			const ExistingUser = await this.prisma.walimah_users.findFirst({
 				where: {
-					number: dto.number,
+					number: dto.number.trim(),
 				},
 			});
 
@@ -477,7 +477,7 @@ export class WalimahService {
 						name: dto.name,
 						city: dto.city,
 						email: dto.email,
-						number: dto.number,
+						number: dto.number.trim(),
 						code: code,
 						usedCode: dto.code,
 					},
