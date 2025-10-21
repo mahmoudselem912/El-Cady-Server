@@ -1030,6 +1030,16 @@ export class WalimahService {
 				this.prisma.walimah_users.count({ where }),
 			]);
 
+			const allUsers2 = await this.prisma.walimah_users.findMany({
+				include: {
+					user_Coupons: {
+						include: { coupon: true },
+					},
+					walimah_users_bills: true,
+				},
+				orderBy: { createdAt: 'desc' },
+			});
+
 			// 2️⃣ Build code usage map
 			const usageMap: Record<string, number> = {};
 			for (const u of allUsers) {
@@ -1042,7 +1052,12 @@ export class WalimahService {
 				sharedCount: u.code ? usageMap[u.code] || 0 : 0,
 			}));
 
-			const sharedUsersCount = enrichedAllUsers.filter((u) => u.sharedCount > 0).length;
+			const enrichedAllUsers2 = allUsers2.map((u) => ({
+				...u,
+				sharedCount: u.code ? usageMap[u.code] || 0 : 0,
+			}));
+
+			const sharedUsersCount = enrichedAllUsers2.filter((u) => u.sharedCount > 0).length;
 			const sharedCounts = await this.prisma.walimah_users.groupBy({
 				by: ['usedCode'],
 				_count: { usedCode: true },
