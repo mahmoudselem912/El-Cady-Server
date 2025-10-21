@@ -1051,14 +1051,14 @@ export class WalimahService {
 			const usageMap2: Record<string, number> = {};
 			for (const u of allUsers2) {
 				if (u.usedCode) {
-					usageMap[u.usedCode] = (usageMap[u.usedCode] || 0) + 1;
+					usageMap2[u.usedCode] = (usageMap2[u.usedCode] || 0) + 1;
 				}
 			}
 
-			const enrichedAllUsers = allUsers.map((u) => ({
-				...u,
-				sharedCount: u.code ? usageMap[u.code] || 0 : 0,
-			}));
+			// const enrichedAllUsers = allUsers.map((u) => ({
+			// 	...u,
+			// 	sharedCount: u.code ? usageMap[u.code] || 0 : 0,
+			// }));
 
 			const enrichedAllUsers2 = allUsers2.map((u) => ({
 				...u,
