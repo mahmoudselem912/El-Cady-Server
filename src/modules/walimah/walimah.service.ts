@@ -449,17 +449,45 @@ export class WalimahService {
 				usageMap[current] < usageMap[min] ? current : min,
 			);
 
-			// 7️⃣ Check available companies (skip empty ones)
-			let availableCompany: CouponCompany | null = null;
+			// 7️⃣ Check available companies (skip empty ones) — with weighted randomness
 
-			for (const company of allCompanies.sort((a, b) => usageMap[a] - usageMap[b])) {
+			// Define weights (lower weight = less chance to appear)
+			const companyWeights: Record<CouponCompany, number> = {
+				[CouponCompany.Noon]: 5,
+				[CouponCompany.SaifGallery]: 5,
+				[CouponCompany.CuisinePlus]: 5,
+				[CouponCompany.Platinum]: 4,
+				[CouponCompany.PlatinumFixed100]: 0.05,
+				[CouponCompany.PlatinumFixed150]: 0.05,
+				[CouponCompany.PlatinumFixed200]: 0.05,
+				[CouponCompany.PlatinumFixed300]: 0.05,
+			};
+
+			// Sort companies by usage (least used first)
+			const sortedCompanies = allCompanies.sort((a, b) => usageMap[a] - usageMap[b]);
+
+			// Filter only companies with available coupons
+			const availableCompanies: { company: CouponCompany; weight: number }[] = [];
+			for (const company of sortedCompanies) {
 				const availableCount = await this.prisma.coupons.count({
-					where: {
-						company,
-						user_Coupons: { none: {} }, // unused coupons only
-					},
+					where: { company, user_Coupons: { none: {} } },
 				});
 				if (availableCount > 0) {
+					availableCompanies.push({ company, weight: companyWeights[company] });
+				}
+			}
+
+			if (availableCompanies.length === 0) {
+				throw new CustomNotFoundException('All coupons have been used!');
+			}
+
+			// Weighted random selection
+			const totalWeight = availableCompanies.reduce((sum, c) => sum + c.weight, 0);
+			let random = Math.random() * totalWeight;
+
+			let availableCompany: CouponCompany | null = null;
+			for (const { company, weight } of availableCompanies) {
+				if ((random -= weight) <= 0) {
 					availableCompany = company;
 					break;
 				}
