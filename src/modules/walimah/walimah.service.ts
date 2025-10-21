@@ -1000,35 +1000,12 @@ export class WalimahService {
 				},
 			});
 
-			const page = dto.page ?? 1;
-			const limit = dto.pageItemsCount ?? 10;
-			const skip = (page - 1) * limit;
-			const search = dto.search?.trim();
-
-			// 1️⃣ Base where clause
-			const where: any = {};
-			if (search) {
-				where.OR = [
-					{ name: { contains: search, mode: 'insensitive' } },
-					{ code: { contains: search, mode: 'insensitive' } },
-				];
-			}
-
-			const [allUsers, totalUsers] = await Promise.all([
-				this.prisma.walimah_users.findMany({
-					where,
-					skip,
-					take: limit,
-					include: {
-						user_Coupons: {
-							include: { coupon: true },
-						},
-						walimah_users_bills: true,
-					},
-					orderBy: { createdAt: 'desc' },
-				}),
-				this.prisma.walimah_users.count({ where }),
-			]);
+			const allUsers = await this.prisma.walimah_users.findMany({
+				include: {
+					user_Coupons: { include: { coupon: true } },
+					walimah_users_bills: true,
+				},
+			});
 
 			const allUsers2 = await this.prisma.walimah_users.findMany({
 				include: {
@@ -1070,9 +1047,7 @@ export class WalimahService {
 			const sharedCounts = await this.prisma.walimah_users.groupBy({
 				by: ['usedCode'],
 				_count: { usedCode: true },
-				where: {
-					usedCode: { not: null },
-				},
+				where: { usedCode: { not: null } },
 			});
 
 			// Convert the counts into an easy lookup
@@ -1099,11 +1074,24 @@ export class WalimahService {
 				};
 			});
 
-			// Sort by totalCouponValue or billsCount (you can customize sorting priority)
-			const sorted = leaderboard.sort(
-				(a, b) =>
-					b.sharedCount - a.sharedCount || b.couponsCount - a.couponsCount || b.billsCount - a.billsCount,
-			);
+			const page = dto.page ?? 1;
+			const limit = dto.pageItemsCount ?? 10;
+			const start = (page - 1) * limit;
+
+			type SortableField = 'sharedCount' | 'couponsCount' | 'billsCount';
+			const sortBy = (dto.sortBy ?? 'sharedCount') as SortableField;
+			const sortOrder = dto.sortOrder ?? 'desc';
+
+			const sorted = leaderboard.sort((a, b) => {
+				const field = sortBy;
+				const aVal = a[field] ?? 0;
+				const bVal = b[field] ?? 0;
+
+				return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+			});
+
+			// 5️⃣ Apply pagination AFTER sorting
+			const paginated = sorted.slice(start, start + limit);
 
 			// Return top 10
 			// const leaders = sorted.slice(0, 10);
@@ -1134,11 +1122,11 @@ export class WalimahService {
 				totalBills,
 				totalUsersWonCoupons,
 				sharedUsersCount,
-				leaders: sorted,
+				leaders: paginated,
 				page: dto.page || null,
 				pageItemsCount: dto.pageItemsCount || null,
-				totalPages: Math.ceil(totalUsers / limit),
-				totalUsers: totalUsers,
+				totalPages: Math.ceil(leaderboard.length / limit),
+				totalUsers: leaderboard.length,
 			};
 		} catch (error) {
 			handleException(error, {});

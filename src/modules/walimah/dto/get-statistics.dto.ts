@@ -19,4 +19,14 @@ export class GetStatisticsDto {
 	@IsOptional()
 	@IsString()
 	search?: string;
+
+	@ApiProperty({ example: 'sharedCount', required: false, enum: ['sharedCount', 'couponsCount', 'billsCount'] })
+	@IsOptional()
+	@IsString()
+	sortBy?: 'sharedCount' | 'couponsCount' | 'billsCount';
+
+	@ApiProperty({ example: 'desc', required: false, enum: ['asc', 'desc'] })
+	@IsOptional()
+	@IsString()
+	sortOrder?: 'asc' | 'desc';
 }
