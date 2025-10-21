@@ -1047,6 +1047,14 @@ export class WalimahService {
 					usageMap[u.usedCode] = (usageMap[u.usedCode] || 0) + 1;
 				}
 			}
+
+			const usageMap2: Record<string, number> = {};
+			for (const u of allUsers2) {
+				if (u.usedCode) {
+					usageMap[u.usedCode] = (usageMap[u.usedCode] || 0) + 1;
+				}
+			}
+
 			const enrichedAllUsers = allUsers.map((u) => ({
 				...u,
 				sharedCount: u.code ? usageMap[u.code] || 0 : 0,
@@ -1054,10 +1062,11 @@ export class WalimahService {
 
 			const enrichedAllUsers2 = allUsers2.map((u) => ({
 				...u,
-				sharedCount: u.code ? usageMap[u.code] || 0 : 0,
+				sharedCount: u.code ? usageMap2[u.code] || 0 : 0,
 			}));
 
 			const sharedUsersCount = enrichedAllUsers2.filter((u) => u.sharedCount > 0).length;
+
 			const sharedCounts = await this.prisma.walimah_users.groupBy({
 				by: ['usedCode'],
 				_count: { usedCode: true },
