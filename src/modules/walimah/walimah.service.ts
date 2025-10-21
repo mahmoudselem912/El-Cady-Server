@@ -11,6 +11,7 @@ import {
 	AddWalimahDashboardUserDto,
 	checkUserCodeDto,
 	GetDashboardClientsDto,
+	GetStatisticsDto,
 	UploadCouponsSheetDto,
 	UploadDto,
 	UserIdentifier,
@@ -936,7 +937,7 @@ export class WalimahService {
 		}
 	}
 
-	async getStatitics() {
+	async getStatitics(dto: GetStatisticsDto) {
 		try {
 			const totalCoupons = await this.prisma.coupons.count();
 
@@ -999,16 +1000,35 @@ export class WalimahService {
 				},
 			});
 
-			const allUsers = await this.prisma.walimah_users.findMany({
-				include: {
-					user_Coupons: {
-						include: {
-							coupon: true,
+			const page = dto.page ?? 1;
+			const limit = dto.pageItemsCount ?? 10;
+			const skip = (page - 1) * limit;
+			const search = dto.search?.trim();
+
+			// 1️⃣ Base where clause
+			const where: any = {};
+			if (search) {
+				where.OR = [
+					{ name: { contains: search, mode: 'insensitive' } },
+					{ code: { contains: search, mode: 'insensitive' } },
+				];
+			}
+
+			const [allUsers, totalUsers] = await Promise.all([
+				this.prisma.walimah_users.findMany({
+					where,
+					skip,
+					take: limit,
+					include: {
+						user_Coupons: {
+							include: { coupon: true },
 						},
+						walimah_users_bills: true,
 					},
-					walimah_users_bills: true,
-				},
-			});
+					orderBy: { createdAt: 'desc' },
+				}),
+				this.prisma.walimah_users.count({ where }),
+			]);
 
 			// 2️⃣ Build code usage map
 			const usageMap: Record<string, number> = {};
@@ -1091,6 +1111,10 @@ export class WalimahService {
 				totalUsersWonCoupons,
 				sharedUsersCount,
 				leaders: sorted,
+				page: dto.page || null,
+				pageItemsCount: dto.pageItemsCount || null,
+				totalPages: Math.ceil(totalUsers / limit),
+				totalUsers: totalUsers,
 			};
 		} catch (error) {
 			handleException(error, {});

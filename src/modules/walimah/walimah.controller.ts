@@ -9,6 +9,7 @@ import {
 	AddWalimahDashboardUserDto,
 	checkUserCodeDto,
 	GetDashboardClientsDto,
+	GetStatisticsDto,
 	UploadCouponsSheetDto,
 	UploadDto,
 	UserIdentifier,
@@ -202,8 +203,8 @@ export class WalimahController {
 	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-statistics')
-	async GetStatistics(@GetUser() user: walimah_dashboard_user) {
-		const data = await this.walimahService.getStatitics();
+	async GetStatistics(@Query() dto: GetStatisticsDto, @GetUser() user: walimah_dashboard_user) {
+		const data = await this.walimahService.getStatitics(dto);
 		return successfulResponse(data);
 	}
 
