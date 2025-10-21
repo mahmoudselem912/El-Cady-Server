@@ -11,6 +11,7 @@ import { CountryModule } from './modules/country/country.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { GentoModule } from './modules/gento/gento.module';
 import { MailModule } from './modules/mail/mail.module';
+import { ExcelModule } from './modules/excel/excel.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -34,6 +35,7 @@ const ENV = process.env.NODE_ENV;
 		CountryModule,
 		GentoModule,
 		MailModule,
+		ExcelModule,
 	],
 	controllers: [],
 	providers: [

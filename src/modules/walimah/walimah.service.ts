@@ -21,6 +21,7 @@ import * as XLSX from 'xlsx';
 import { DrawIdentifier } from './dto/draw-identifier';
 import { hashPassword } from 'src/utils/bcrypt';
 import { CouponCompany, Prisma, walimah_dashboard_user } from '@prisma/client';
+import { ExcelService } from '../excel/excel.service';
 
 @Injectable()
 export class WalimahService {
@@ -29,6 +30,7 @@ export class WalimahService {
 	constructor(
 		private readonly prisma: PrismaService,
 		private readonly config: ConfigService,
+		private readonly excelService: ExcelService,
 	) {
 		this.openai = new OpenAI({
 			apiKey: config.get('OPEN_AI_KEY'),
@@ -1136,6 +1138,33 @@ export class WalimahService {
 
 			console.log(`Total deleted coupons: ${totalDeleted}`);
 			return totalDeleted;
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
+
+	async exportWalimahUsers() {
+		try {
+			const users = await this.prisma.walimah_users.findMany();
+			const headers = ['Name', 'Number', 'City', 'Email', 'Code'];
+			const data = users.map((user) => [
+				user.name ?? '',
+				user.number ?? '',
+				user.city ?? '',
+				user.email ?? '',
+				user.code ?? '',
+			]);
+
+			const excelLink = await this.excelService.createExcelFile(
+				headers,
+				data,
+				`walimah-users-${new Date().toISOString()}.xlsx`,
+			);
+			
+			return {
+				message: 'Rewards exported successfully',
+				excelLink,
+			};
 		} catch (error) {
 			handleException(error, {});
 		}

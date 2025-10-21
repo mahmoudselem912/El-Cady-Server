@@ -215,4 +215,13 @@ export class WalimahController {
 		const data = await this.walimahService.deleteExtraCoupons();
 		return successfulResponse(data);
 	}
+
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	@CoreUserType(CoreUserEnum.CLIENT)
+	@Post('export-walimah-users')
+	async ExportWalimahUsers() {
+		const data = await this.walimahService.exportWalimahUsers();
+		return successfulResponse(data);
+	}
 }
