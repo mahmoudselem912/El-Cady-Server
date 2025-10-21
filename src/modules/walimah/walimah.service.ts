@@ -514,7 +514,11 @@ export class WalimahService {
 			// 1️⃣ Fetch all users (for statistics)
 			const allUsers = await this.prisma.walimah_users.findMany({
 				include: {
-					user_Coupons: true,
+					user_Coupons: {
+						include: {
+							coupon: true,
+						},
+					},
 					walimah_users_bills: true,
 				},
 			});
@@ -1228,10 +1232,10 @@ export class WalimahService {
 
 	async giveMeNow() {
 		try {
-			const now = new Date()
-			return now
+			const now = new Date();
+			return now;
 		} catch (error) {
-			handleException(error, {})
+			handleException(error, {});
 		}
 	}
 }
