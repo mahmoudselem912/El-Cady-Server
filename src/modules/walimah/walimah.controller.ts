@@ -235,4 +235,13 @@ export class WalimahController {
 		const data = await this.walimahService.getUsersByCouponCompany(dto);
 		return successfulResponse(data);
 	}
+
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	@CoreUserType(CoreUserEnum.CLIENT)
+	@Get('give-me-now')
+	async GiveMeNow() {
+		const data = await this.walimahService.giveMeNow();
+		return successfulResponse(data);
+	}
 }

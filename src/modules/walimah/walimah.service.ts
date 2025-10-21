@@ -1225,4 +1225,13 @@ export class WalimahService {
 			handleException(error, dto);
 		}
 	}
+
+	async giveMeNow() {
+		try {
+			const now = new Date()
+			return now
+		} catch (error) {
+			handleException(error, {})
+		}
+	}
 }
