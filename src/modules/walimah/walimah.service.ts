@@ -1062,7 +1062,7 @@ export class WalimahService {
 			);
 
 			// Return top 10
-			const leaders = sorted.slice(0, 10);
+			// const leaders = sorted.slice(0, 10);
 
 			const freeCouponsByCompany: Record<string, number> = {};
 
@@ -1090,7 +1090,7 @@ export class WalimahService {
 				totalBills,
 				totalUsersWonCoupons,
 				sharedUsersCount,
-				leaders,
+				leaders: sorted,
 			};
 		} catch (error) {
 			handleException(error, {});
@@ -1160,7 +1160,7 @@ export class WalimahService {
 				data,
 				`walimah-users-${new Date().toISOString()}.xlsx`,
 			);
-			
+
 			return {
 				message: 'Rewards exported successfully',
 				excelLink,
