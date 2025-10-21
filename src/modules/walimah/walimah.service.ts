@@ -24,6 +24,12 @@ import { DrawIdentifier } from './dto/draw-identifier';
 import { hashPassword } from 'src/utils/bcrypt';
 import { CouponCompany, Prisma, walimah_dashboard_user } from '@prisma/client';
 import { ExcelService } from '../excel/excel.service';
+// import pdfParse from 'pdf-parse';
+import { fromPath, fromBuffer } from 'pdf2pic';
+import * as fs from "fs";
+import * as path from "path";
+import { tmpdir } from "os";
+
 
 @Injectable()
 export class WalimahService {
@@ -39,19 +45,6 @@ export class WalimahService {
 		});
 	}
 
-	private parseResponse(raw: string): any {
-		try {
-			const json = raw.replace(/```(json)?/g, '').trim();
-			return JSON.parse(json);
-		} catch (e) {
-			return {
-				error: {
-					message: 'INVALID_JSON_RESPONSE',
-					status: 500,
-				},
-			};
-		}
-	}
 	private async generateUniqueUserCode(): Promise<string> {
 		const prefix = 'WLM';
 		const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -74,7 +67,181 @@ export class WalimahService {
 		return code;
 	}
 
-	private async useOpenAI(base64ImageString: string) {
+	// private parseResponse(raw: string): any {
+	// 	try {
+	// 		const json = raw.replace(/```(json)?/g, '').trim();
+	// 		return JSON.parse(json);
+	// 	} catch (e) {
+	// 		return {
+	// 			error: {
+	// 				message: 'INVALID_JSON_RESPONSE',
+	// 				status: 500,
+	// 			},
+	// 		};
+	// 	}
+	// }
+
+	// private async useOpenAI(base64ImageString: string) {
+	// 	const prompt = `
+	// أنت خبير في تحليل فواتير المشتريات. المطلوب منك:
+
+	// 1. استخراج تاريخ الفاتورة بصيغة yyyy-mm-dd.
+	// 2. استخراج رقم الفاتورة.
+	// 3. تحديد ما إذا كانت الفاتورة حقيقية (صادرة من نظام نقاط بيع رسمي).
+	// 4. التحقق مما إذا كانت الفاتورة تحتوي على منتج يتعلق بـ "أرز الوليمة".
+	//    - المنتج يُعتبر "أرز الوليمة" إذا احتوى اسمه على كلمتين تدلان على:
+	//      • كلمة "الوليمة" أو "WALIMAH"
+	//      • كلمة "أرز" أو "RICE"
+	//    - الكلمات قد تأتي بأي ترتيب أو مع أوصاف إضافية مثل: "أرز الوليمة"، "الوليمة أرز بسمتي"، "AL WALIMAH SELLA R"، "الوليمة أرز كبير".
+	//    - المهم أن تكون الكلمتان موجودتان معًا في اسم المنتج.
+	// 5. إذا لم يظهر في الفاتورة أي منتج يحتوي على الكلمتين معًا، فاعتبر أنه غير موجود.
+
+	// ### الشكل المطلوب للإجابة:
+
+	// {
+	//   "invoiceDate": "yyyy-mm-dd",
+	//   "invoiceNumber": "رقم الفاتورة",
+	//   "isReal": true,
+	//   "hasRice": {
+	//     "value": true,
+	//     "reason": "الفاتورة تحتوي على بند باسم 'الوليمة ارز بسمتي'"
+	//   }
+	// }
+
+	// إذا لم تتمكن من استخراج البيانات، ارجع النتيجة بهذا الشكل:
+
+	// {
+	//   "error": {
+	//     "message": "DESCRIPTION_OF_THE_ERROR_IN_UPPER_CASE_UNDERSCORED",
+	//     "status": 500
+	//   }
+	// }
+	// `;
+
+	// 	try {
+	// 		const response = await this.openai.chat.completions.create({
+	// 			model: 'gpt-4.1-nano',
+	// 			messages: [
+	// 				{
+	// 					role: 'user',
+	// 					content: [
+	// 						{ type: 'text', text: prompt },
+	// 						{
+	// 							type: 'image_url',
+	// 							image_url: {
+	// 								url: base64ImageString,
+	// 								detail: 'high',
+	// 							},
+	// 						},
+	// 					],
+	// 				},
+	// 			],
+	// 			max_tokens: 800,
+	// 		});
+
+	// 		console.log(`response: ${response}`);
+
+	// 		const content = response.choices[0].message.content;
+	// 		return this.parseResponse(content);
+	// 	} catch (error) {
+	// 		console.log(error);
+	// 		return {
+	// 			error: {
+	// 				message: 'OPENAI_REQUEST_FAILED',
+	// 				status: 500,
+	// 			},
+	// 		};
+	// 	}
+	// }
+
+	// async analyzeAndSave(dto: UploadDto, file: MemoryStorageFile) {
+	// 	try {
+	// 		const ExistinUser = await this.prisma.walimah_users.findFirst({
+	// 			where: {
+	// 				id: dto.user_id,
+	// 			},
+	// 		});
+
+	// 		if (!ExistinUser) {
+	// 			throw new CustomNotFoundException('User not found!');
+	// 		}
+
+	// 		// if (!file.mimetype || !['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.mimetype)) {
+	// 		// 	throw new CustomBadRequestException('Invalid image type');
+	// 		// }
+
+	// 		console.log(file);
+
+	// 		const base64Image1 = Buffer.from(file.buffer).toString('base64');
+
+	// 		// Prepend data URI scheme if needed (optional)
+	// 		const dataURI = `data:${file.mimetype};base64,${base64Image1}`;
+
+	// 		const result = await this.useOpenAI(file);
+
+	// 		// Handle OpenAI errors
+	// 		if (result?.error) {
+	// 			throw new CustomBadRequestException(result.error.message);
+	// 		}
+
+	// 		const nestedFolder = `users/user-${ExistinUser.name.replaceAll(' ', '')}`;
+	// 		const filesWithPathAndURl = await addPathToFiles([file], 'ElCady', nestedFolder);
+
+	// 		if (result.hasRice.value) {
+	// 			const ExistingBill = await this.prisma.walimah_users_bills.findFirst({
+	// 				where: {
+	// 					bill_number: result.invoiceNumber,
+	// 				},
+	// 			});
+
+	// 			if (ExistingBill) {
+	// 				throw new CustomBadRequestException('هذه الفاتورة تم رفعها بالفعل');
+	// 			}
+	// 		}
+
+	// 		await this.prisma.walimah_users_bills.create({
+	// 			data: {
+	// 				walimah_user_id: dto.user_id,
+	// 				bill_number: result?.invoiceNumber,
+	// 				bill_image: filesWithPathAndURl[0].fileurl,
+	// 			},
+	// 		});
+
+	// 		if (file)
+	// 			try {
+	// 				await saveFilesOnServer(filesWithPathAndURl);
+	// 			} catch (error) {
+	// 				await this.prisma.walimah_users.delete({
+	// 					where: { id: ExistinUser.id },
+	// 				});
+
+	// 				throw new InternalServerErrorException(
+	// 					'Error saving files while creating User',
+	// 					(error as Error).message,
+	// 				);
+	// 			}
+
+	// 		return result;
+	// 	} catch (error) {
+	// 		handleException(error, {});
+	// 	}
+	// }
+
+	private parseResponse(raw: string): any {
+		try {
+			const json = raw.replace(/```(json)?/g, '').trim();
+			return JSON.parse(json);
+		} catch (e) {
+			return {
+				error: {
+					message: 'INVALID_JSON_RESPONSE',
+					status: 500,
+				},
+			};
+		}
+	}
+
+	private async useOpenAI(base64ImageString: string, isPdf: boolean = false) {
 		const prompt = `
 أنت خبير في تحليل فواتير المشتريات. المطلوب منك:
 
@@ -112,30 +279,72 @@ export class WalimahService {
 `;
 
 		try {
-			const response = await this.openai.chat.completions.create({
-				model: 'gpt-4.1-nano',
-				messages: [
-					{
-						role: 'user',
-						content: [
-							{ type: 'text', text: prompt },
-							{
-								type: 'image_url',
-								image_url: {
-									url: base64ImageString,
-									detail: 'high',
+			// For PDFs, we need to use a different approach since GPT-4 can't directly read PDFs
+			if (isPdf) {
+				console.log('Start calling open ai for pdf');
+				// You might need to convert PDF to images first for GPT-4 Vision
+				// For now, we'll use text-based approach with regular GPT-4
+				const base64Data = base64ImageString.replace(/^data:application\/pdf;base64,/, '');
+				const tempPath = path.join(tmpdir(), `invoice-${Date.now()}.pdf`);
+				fs.writeFileSync(tempPath, Buffer.from(base64Data, 'base64'));
+
+				const file = await this.openai.files.create({
+					file: fs.createReadStream(tempPath),
+					purpose: 'assistants',
+				});
+
+				console.log('Done call assistant');
+
+				const response = await this.openai.responses.create({
+					model: 'gpt-4.1', // ✅ supports files + reasoning
+					input: [
+						{
+							role: 'user',
+							content: [
+								{ type: 'input_text', text: prompt },
+								{ type: 'input_file', file_id: file.id },
+							],
+						},
+					],
+				});
+
+				let content = response.output_text ?? '';
+
+				// if (!content && Array.isArray(response.output)) {
+				// 	const message = response.output.find((item: any) => item.type === 'message');
+				// 	if (message?.content?.[0]?.text) {
+				// 		content = message.content[0].text;
+				// 	}
+				// }
+
+				return this.parseResponse(content);
+			} else {
+				// Original image processing logic
+				const response = await this.openai.chat.completions.create({
+					model: 'gpt-4.1-nano', // Use vision model for images
+					messages: [
+						{
+							role: 'user',
+							content: [
+								{ type: 'text', text: prompt },
+								{
+									type: 'image_url',
+									image_url: {
+										url: base64ImageString,
+										detail: 'high',
+									},
 								},
-							},
-						],
-					},
-				],
-				max_tokens: 800,
-			});
+							],
+						},
+					],
+					max_tokens: 800,
+				});
 
-			console.log(`response: ${response}`);
+				console.log(`response: ${response}`);
 
-			const content = response.choices[0].message.content;
-			return this.parseResponse(content);
+				const content = response.choices[0].message.content;
+				return this.parseResponse(content);
+			}
 		} catch (error) {
 			console.log(error);
 			return {
@@ -145,6 +354,14 @@ export class WalimahService {
 				},
 			};
 		}
+	}
+
+	// Helper function to convert PDF to images (you'll need to implement this based on your PDF library)
+	private async convertPdfToImages(pdfBuffer: Buffer): Promise<string[]> {
+		// This is a placeholder - you'll need to implement PDF to image conversion
+		// Using a library like pdf2pic, pdf-poppler, or similar
+		// Return array of base64 encoded images
+		throw new Error('PDF to image conversion not implemented');
 	}
 
 	async analyzeAndSave(dto: UploadDto, file: MemoryStorageFile) {
@@ -159,18 +376,40 @@ export class WalimahService {
 				throw new CustomNotFoundException('User not found!');
 			}
 
-			if (!file.mimetype || !['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.mimetype)) {
-				throw new CustomBadRequestException('Invalid image type');
+			// Update allowed file types to include PDF
+			const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+			if (!file.mimetype || !allowedMimeTypes.includes(file.mimetype)) {
+				throw new CustomBadRequestException('Invalid file type. Only images and PDFs are allowed.');
 			}
 
 			console.log(file);
 
-			const base64Image1 = Buffer.from(file.buffer).toString('base64');
+			let result;
+			const isPdf = file.mimetype === 'application/pdf';
 
-			// Prepend data URI scheme if needed (optional)
-			const dataURI = `data:${file.mimetype};base64,${base64Image1}`;
+			if (isPdf) {
+				// For PDFs, you have two options:
 
-			const result = await this.useOpenAI(dataURI);
+				// Option 1: Convert PDF to text and send as text (simpler but less accurate for formatted invoices)
+				const pdfBuffer = file.buffer;
+				const base64Pdf = pdfBuffer.toString('base64');
+				result = await this.useOpenAI(base64Pdf, true);
+
+				// Option 2: Convert PDF to images and process each page (more accurate but more complex)
+				// const images = await this.convertPdfToImages(file.buffer);
+				// // Process each image page and combine results
+				// const results = [];
+				// for (const image of images) {
+				// 	const pageResult = await this.useOpenAI(image, false);
+				// 	results.push(pageResult);
+				// }
+				// result = this.combinePdfResults(results);
+			} else {
+				// Original image processing
+				const base64Image = Buffer.from(file.buffer).toString('base64');
+				const dataURI = `data:${file.mimetype};base64,${base64Image}`;
+				result = await this.useOpenAI(dataURI, false);
+			}
 
 			// Handle OpenAI errors
 			if (result?.error) {
