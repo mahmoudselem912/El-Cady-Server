@@ -10,6 +10,7 @@ import {
 	checkUserCodeDto,
 	GetDashboardClientsDto,
 	GetStatisticsDto,
+	GetUsersByCouponCompany,
 	UploadCouponsSheetDto,
 	UploadDto,
 	UserIdentifier,
@@ -223,6 +224,15 @@ export class WalimahController {
 	@Post('export-walimah-users')
 	async ExportWalimahUsers() {
 		const data = await this.walimahService.exportWalimahUsers();
+		return successfulResponse(data);
+	}
+
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	@CoreUserType(CoreUserEnum.CLIENT)
+	@Get('get-users-by-coupon-company')
+	async GetUsersByCouponCompany(@Query() dto: GetUsersByCouponCompany) {
+		const data = await this.walimahService.getUsersByCouponCompany(dto);
 		return successfulResponse(data);
 	}
 }

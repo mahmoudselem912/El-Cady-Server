@@ -12,6 +12,7 @@ import {
 	checkUserCodeDto,
 	GetDashboardClientsDto,
 	GetStatisticsDto,
+	GetUsersByCouponCompany,
 	UploadCouponsSheetDto,
 	UploadDto,
 	UserIdentifier,
@@ -1203,6 +1204,25 @@ export class WalimahService {
 			};
 		} catch (error) {
 			handleException(error, {});
+		}
+	}
+
+	async getUsersByCouponCompany(dto: GetUsersByCouponCompany) {
+		try {
+			const users = await this.prisma.user_Coupons.findMany({
+				where: {
+					coupon: {
+						company: dto.company,
+					},
+				},
+				include: {
+					user: true,
+				},
+			});
+
+			return users;
+		} catch (error) {
+			handleException(error, dto);
 		}
 	}
 }
