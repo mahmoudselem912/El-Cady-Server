@@ -187,6 +187,7 @@ enum CouponCompany {
   SaifGallery
   CuisinePlus
   Platinum
+  PlatinumFixed
 }
 
 enum CouponType {
