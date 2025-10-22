@@ -8,6 +8,7 @@ import {
 	AddUserDto,
 	AddWalimahDashboardUserDto,
 	checkUserCodeDto,
+	ExportUploadBillsHistoryDto,
 	GetDashboardClientsDto,
 	GetStatisticsDto,
 	GetUsersByCouponCompany,
@@ -249,8 +250,8 @@ export class WalimahController {
 	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	@CoreUserType(CoreUserEnum.CLIENT)
 	@Get('export-upload-bills-history')
-	async ExportUploadBillsHistory() {
-		const data = await this.walimahService.exportUploadBillsHistory();
+	async ExportUploadBillsHistory(@Query() dto: ExportUploadBillsHistoryDto) {
+		const data = await this.walimahService.exportUploadBillsHistory(dto);
 		return successfulResponse(data);
 	}
 }

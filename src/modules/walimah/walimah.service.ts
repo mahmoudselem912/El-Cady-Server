@@ -10,6 +10,7 @@ import {
 	AddUserDto,
 	AddWalimahDashboardUserDto,
 	checkUserCodeDto,
+	ExportUploadBillsHistoryDto,
 	GetDashboardClientsDto,
 	GetStatisticsDto,
 	GetUsersByCouponCompany,
@@ -1556,15 +1557,31 @@ export class WalimahService {
 		}
 	}
 
-	async exportUploadBillsHistory() {
+	async exportUploadBillsHistory(dto: ExportUploadBillsHistoryDto) {
 		try {
 			const bills = await this.prisma.walimah_users_bills.findMany({
+				where: {
+					createdAt: {
+						gte: new Date(dto.from),
+						lte: new Date(dto.to),
+					},
+				},
 				include: {
 					walimah_user: true,
 				},
 			});
 
-			const headers = ['Name', 'Number', 'City', 'Email', 'Code', 'Bill Link', 'Status', 'Response'];
+			const headers = [
+				'Name',
+				'Number',
+				'City',
+				'Email',
+				'Code',
+				'Bill Link',
+				'Upload Date',
+				'Status',
+				'Response',
+			];
 			const data = bills.map((bill) => [
 				bill.walimah_user.name ?? '',
 				bill.walimah_user.number ?? '',
@@ -1572,6 +1589,7 @@ export class WalimahService {
 				bill.walimah_user.email ?? '',
 				bill.walimah_user.code ?? '',
 				'https://core-api.kadi-odyssey.com/uploads/' + bill.bill_image,
+				bill.createdAt ? new Date(new Date(bill.createdAt).getTime() + 180 * 60 * 1000) : '',
 				bill.approved ? 'Approved' : 'Rejected',
 				bill.result ?? '',
 			]);
