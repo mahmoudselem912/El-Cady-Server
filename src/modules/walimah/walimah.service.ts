@@ -1557,13 +1557,25 @@ export class WalimahService {
 		}
 	}
 
+	
 	async exportUploadBillsHistory(dto: ExportUploadBillsHistoryDto) {
 		try {
+			const from = new Date(dto.from);
+			const to = new Date(dto.to);
+
+			// Set to start and end of day
+			from.setHours(0, 0, 0, 0);
+			to.setHours(23, 59, 59, 999);
+
+			// Subtract 180 minutes (3 hours) from both
+			from.setMinutes(from.getMinutes() - 180);
+			to.setMinutes(to.getMinutes() - 180);
+
 			const bills = await this.prisma.walimah_users_bills.findMany({
 				where: {
 					createdAt: {
-						gte: new Date(dto.from),
-						lte: new Date(dto.to),
+						gte: from,
+						lte: to,
 					},
 				},
 				include: {
