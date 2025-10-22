@@ -26,10 +26,9 @@ import { CouponCompany, Prisma, walimah_dashboard_user } from '@prisma/client';
 import { ExcelService } from '../excel/excel.service';
 // import pdfParse from 'pdf-parse';
 import { fromPath, fromBuffer } from 'pdf2pic';
-import * as fs from "fs";
-import * as path from "path";
-import { tmpdir } from "os";
-
+import * as fs from 'fs';
+import * as path from 'path';
+import { tmpdir } from 'os';
 
 @Injectable()
 export class WalimahService {
@@ -376,6 +375,18 @@ export class WalimahService {
 				throw new CustomNotFoundException('User not found!');
 			}
 
+			if (dto.file_name) {
+				const ExistingBill = await this.prisma.walimah_users_bills.findFirst({
+					where: {
+						file_name: dto.file_name,
+					},
+				});
+
+				if (ExistingBill) {
+					throw new CustomBadRequestException('هذه الفاتورة تم رفعها بالفعل');
+				}
+			}
+
 			// Update allowed file types to include PDF
 			const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
 			if (!file.mimetype || !allowedMimeTypes.includes(file.mimetype)) {
@@ -419,20 +430,21 @@ export class WalimahService {
 			const nestedFolder = `users/user-${ExistinUser.name.replaceAll(' ', '')}`;
 			const filesWithPathAndURl = await addPathToFiles([file], 'ElCady', nestedFolder);
 
-			if (result.hasRice.value) {
-				const ExistingBill = await this.prisma.walimah_users_bills.findFirst({
-					where: {
-						bill_number: result.invoiceNumber,
-					},
-				});
+			// if (result.hasRice.value) {
+			// 	const ExistingBill = await this.prisma.walimah_users_bills.findFirst({
+			// 		where: {
+			// 			bill_number: result.invoiceNumber,
+			// 		},
+			// 	});
 
-				if (ExistingBill) {
-					throw new CustomBadRequestException('هذه الفاتورة تم رفعها بالفعل');
-				}
-			}
+			// 	if (ExistingBill) {
+			// 		throw new CustomBadRequestException('هذه الفاتورة تم رفعها بالفعل');
+			// 	}
+			// }
 
 			await this.prisma.walimah_users_bills.create({
 				data: {
+					file_name: dto.file_name,
 					walimah_user_id: dto.user_id,
 					bill_number: result?.invoiceNumber,
 					bill_image: filesWithPathAndURl[0].fileurl,
