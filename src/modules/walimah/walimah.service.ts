@@ -463,6 +463,17 @@ export class WalimahService {
 				}
 
 			if (result.hasRice.value) {
+				const ExistingBill = await this.prisma.walimah_users_bills.findFirst({
+					where: {
+						bill_number: result?.invoiceNumber,
+						approved: true,
+					},
+				});
+
+				if (ExistingBill) {
+					throw new CustomBadRequestException('هذه الفاتورة تم رفعها بالفعل');
+				}
+
 				await this.prisma.walimah_users_bills.update({
 					where: {
 						id: createdBill.id,
