@@ -320,7 +320,7 @@ export class WalimahService {
 			} else {
 				// Original image processing logic
 				const response = await this.openai.chat.completions.create({
-					model: 'gpt-4.1-nano', // Use vision model for images
+					model: 'gpt-4.1', // Use vision model for images
 					messages: [
 						{
 							role: 'user',
