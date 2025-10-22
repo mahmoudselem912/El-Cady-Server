@@ -45,6 +45,8 @@ model walimah_users_bills {
   bill_number     String
   bill_image      String
   file_name       String?
+  result          Json?
+  approved        Boolean?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @default(now()) @updatedAt
 }

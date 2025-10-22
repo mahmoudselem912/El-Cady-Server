@@ -29,10 +29,12 @@ import { fromPath, fromBuffer } from 'pdf2pic';
 import * as fs from 'fs';
 import * as path from 'path';
 import { tmpdir } from 'os';
+const vision = require('@google-cloud/vision');
 
 @Injectable()
 export class WalimahService {
 	private readonly openai: OpenAI;
+	private readonly client: any;
 
 	constructor(
 		private readonly prisma: PrismaService,
@@ -42,6 +44,8 @@ export class WalimahService {
 		this.openai = new OpenAI({
 			apiKey: config.get('OPEN_AI_KEY'),
 		});
+
+		this.client = new vision.ImageAnnotatorClient();
 	}
 
 	private async generateUniqueUserCode(): Promise<string> {
@@ -228,6 +232,7 @@ export class WalimahService {
 
 	private parseResponse(raw: string): any {
 		try {
+			console.log(raw);
 			const json = raw.replace(/```(json)?/g, '').trim();
 			return JSON.parse(json);
 		} catch (e) {
@@ -254,6 +259,8 @@ export class WalimahService {
    - الكلمات قد تأتي بأي ترتيب أو مع أوصاف إضافية مثل: "أرز الوليمة"، "الوليمة أرز بسمتي"، "AL WALIMAH SELLA R"، "الوليمة أرز كبير".
    - المهم أن تكون الكلمتان موجودتان معًا في اسم المنتج.
 5. إذا لم يظهر في الفاتورة أي منتج يحتوي على الكلمتين معًا، فاعتبر أنه غير موجود.
+6. التزم بالشكل المطلوب للاجابة لا اريد اي شرح مختصر اخر
+7. لا اريد اي ملاحظات فقط التزم بالشكل المطلوب للاجابة
 
 ### الشكل المطلوب للإجابة:
 
@@ -263,7 +270,7 @@ export class WalimahService {
   "isReal": true,
   "hasRice": {
     "value": true,
-    "reason": "الفاتورة تحتوي على بند باسم 'الوليمة ارز بسمتي'"
+    "reason": "الفاتورة تحتوي على بند باسم 'الوليمة ا	رز بسمتي'"
   }
 }
 
@@ -379,6 +386,7 @@ export class WalimahService {
 				const ExistingBill = await this.prisma.walimah_users_bills.findFirst({
 					where: {
 						file_name: dto.file_name,
+						approved: true,
 					},
 				});
 
@@ -430,24 +438,13 @@ export class WalimahService {
 			const nestedFolder = `users/user-${ExistinUser.name.replaceAll(' ', '')}`;
 			const filesWithPathAndURl = await addPathToFiles([file], 'ElCady', nestedFolder);
 
-			if (result.hasRice.value) {
-				const ExistingBill = await this.prisma.walimah_users_bills.findFirst({
-					where: {
-						bill_number: result.invoiceNumber,
-					},
-				});
-
-				if (ExistingBill) {
-					throw new CustomBadRequestException('هذه الفاتورة تم رفعها بالفعل');
-				}
-			}
-
-			await this.prisma.walimah_users_bills.create({
+			const createdBill = await this.prisma.walimah_users_bills.create({
 				data: {
 					file_name: dto.file_name,
 					walimah_user_id: dto.user_id,
 					bill_number: result?.invoiceNumber,
 					bill_image: filesWithPathAndURl[0].fileurl,
+					result: result,
 				},
 			});
 
@@ -464,6 +461,36 @@ export class WalimahService {
 						(error as Error).message,
 					);
 				}
+
+			if (result.hasRice.value) {
+				await this.prisma.walimah_users_bills.update({
+					where: {
+						id: createdBill.id,
+					},
+					data: {
+						approved: true,
+					},
+				});
+			} else {
+				await this.prisma.walimah_users_bills.update({
+					where: {
+						id: createdBill.id,
+					},
+					data: {
+						approved: false,
+					},
+				});
+			}
+
+			// 👈 replace with your local file
+
+			// Performs text detection
+
+			// const [result2] = await this.client.textDetection('./uploads/' + filesWithPathAndURl[0].fileurl);
+			// const detections = result2.textAnnotations;
+
+			// console.log('Text:');
+			// detections.forEach((text) => console.log(text.description));
 
 			return result;
 		} catch (error) {
