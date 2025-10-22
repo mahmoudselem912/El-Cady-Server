@@ -1590,7 +1590,7 @@ export class WalimahService {
 				bill.walimah_user.code ?? '',
 				'https://core-api.kadi-odyssey.com/uploads/' + bill.bill_image,
 				bill.createdAt ? new Date(new Date(bill.createdAt).getTime() + 180 * 60 * 1000) : '',
-				bill.approved ? 'Approved' : 'Rejected',
+				bill.approved === null ? '' : bill.approved === true ? 'Approved' : 'Rejected',
 				bill.result ?? '',
 			]);
 
