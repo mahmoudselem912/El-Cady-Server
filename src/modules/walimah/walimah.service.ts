@@ -1555,4 +1555,39 @@ export class WalimahService {
 			handleException(error, {});
 		}
 	}
+
+	async exportUploadBillsHistory() {
+		try {
+			const bills = await this.prisma.walimah_users_bills.findMany({
+				include: {
+					walimah_user: true,
+				},
+			});
+
+			const headers = ['Name', 'Number', 'City', 'Email', 'Code', 'Bill Link', 'Status', 'Response'];
+			const data = bills.map((bill) => [
+				bill.walimah_user.name ?? '',
+				bill.walimah_user.number ?? '',
+				bill.walimah_user.city ?? '',
+				bill.walimah_user.email ?? '',
+				bill.walimah_user.code ?? '',
+				'https://core-api.kadi-odyssey.com/uploads/' + bill.bill_image,
+				bill.approved ? 'Approved' : 'Rejected',
+				bill.result ?? '',
+			]);
+
+			const excelLink = await this.excelService.createExcelFile(
+				headers,
+				data,
+				`walimah-bills-history-${new Date().toISOString()}.xlsx`,
+			);
+
+			return {
+				message: 'Walimah bills history exported successfully',
+				excelLink,
+			};
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
 }

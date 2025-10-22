@@ -244,4 +244,13 @@ export class WalimahController {
 		const data = await this.walimahService.giveMeNow();
 		return successfulResponse(data);
 	}
+
+	@ApiBearerAuth()
+	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	@CoreUserType(CoreUserEnum.CLIENT)
+	@Get('export-upload-bills-history')
+	async ExportUploadBillsHistory() {
+		const data = await this.walimahService.exportUploadBillsHistory();
+		return successfulResponse(data);
+	}
 }
