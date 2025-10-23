@@ -1783,7 +1783,7 @@ export class WalimahService {
 							id: ExistingCountry.id,
 						},
 						data: {
-							title_en: row[0]?.toString().trim(),
+							title_en: row[2]?.toString().trim(),
 						},
 					});
 				}
