@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { WalimahService } from './walimah.service';
 import { FileInterceptor, MemoryStorageFile, UploadedFile } from '@blazity/nest-file-fastify';
@@ -21,6 +21,7 @@ import { DrawIdentifier } from './dto/draw-identifier';
 import { AuthorizeCoreUsersGuard, JwtGuard } from '../auth/guard';
 import { CoreUserEnum, CoreUserType, GetUser } from '../auth/decorator';
 import { walimah_dashboard_user, walimah_users } from '@prisma/client';
+import { FastifyRequest } from 'fastify';
 
 @Controller('walimah')
 @ApiTags('Walimah')
@@ -253,5 +254,29 @@ export class WalimahController {
 	async ExportUploadBillsHistory(@Query() dto: ExportUploadBillsHistoryDto) {
 		const data = await this.walimahService.exportUploadBillsHistory(dto);
 		return successfulResponse(data);
+	}
+
+	@Get('record-visit')
+	async record(@Req() req: FastifyRequest) {
+		const ip = this.getClientIp(req);
+		const fingerprint = req.headers['user-agent'] || 'unknown';
+		const data = await this.walimahService.recordVisit(ip, fingerprint);
+		return successfulResponse(data);
+	}
+
+	@Get('get-daily-traffic')
+	async getDaily() {
+		const data = await this.walimahService.getDailyUniqueVisitors();
+		return successfulResponse(data);
+	}
+
+	private getClientIp(req: FastifyRequest): string {
+		// Handles proxies like Nginx or Cloudflare
+		const forwarded = req.headers['x-forwarded-for'];
+		if (forwarded) {
+			const ipList = Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0];
+			return ipList.trim();
+		}
+		return req.ip; // fallback to Fastify’s IP
 	}
 }

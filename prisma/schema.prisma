@@ -169,6 +169,20 @@ model Gento_users {
   updatedAt DateTime  @updatedAt
 }
 
+model Visitor {
+  id          Int      @id @default(autoincrement())
+  ip          String?
+  fingerprint String? // optional: browser fingerprint or random ID
+  createdAt   DateTime @default(now())
+}
+
+model walimah_country {
+  id        Int      @id @default(autoincrement())
+  title     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum Gender {
   Male
   Female

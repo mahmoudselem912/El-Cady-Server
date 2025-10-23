@@ -1505,13 +1505,14 @@ export class WalimahService {
 	async exportWalimahUsers() {
 		try {
 			const users = await this.prisma.walimah_users.findMany();
-			const headers = ['Name', 'Number', 'City', 'Email', 'Code'];
+			const headers = ['Name', 'Number', 'City', 'Email', 'Code', 'Register At'];
 			const data = users.map((user) => [
 				user.name ?? '',
 				user.number ?? '',
 				user.city ?? '',
 				user.email ?? '',
 				user.code ?? '',
+				user.createdAt ?? '',
 			]);
 
 			const excelLink = await this.excelService.createExcelFile(
@@ -1557,7 +1558,6 @@ export class WalimahService {
 		}
 	}
 
-	
 	async exportUploadBillsHistory(dto: ExportUploadBillsHistoryDto) {
 		try {
 			const from = new Date(dto.from);
@@ -1619,5 +1619,39 @@ export class WalimahService {
 		} catch (error) {
 			handleException(error, {});
 		}
+	}
+
+	async recordVisit(ip: string, fingerprint?: string) {
+		// Check if visitor already exists today
+		const startOfDay = new Date();
+		startOfDay.setHours(0, 0, 0, 0);
+
+		const existing = await this.prisma.visitor.findFirst({
+			where: {
+				ip,
+				createdAt: {
+					gte: startOfDay,
+				},
+			},
+		});
+
+		if (!existing) {
+			await this.prisma.visitor.create({
+				data: { ip, fingerprint },
+			});
+		}
+
+		return 'success';
+	}
+
+	async getDailyUniqueVisitors() {
+		return this.prisma.$queryRawUnsafe(`
+      SELECT 
+        DATE("createdAt") as date,
+        COUNT(DISTINCT ip) as visitors
+      FROM "Visitor"
+      GROUP BY DATE("createdAt")
+      ORDER BY DATE("createdAt") ASC;
+    `);
 	}
 }
