@@ -1703,4 +1703,13 @@ export class WalimahService {
 			handleException(error, dto);
 		}
 	}
+
+	async getAllCountries() {
+		try {
+			const countries = await this.prisma.walimah_country.findMany();
+			return countries;
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
 }
