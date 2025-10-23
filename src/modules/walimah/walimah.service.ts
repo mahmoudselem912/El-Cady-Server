@@ -1674,7 +1674,7 @@ export class WalimahService {
       SELECT 
         DATE("createdAt") as date,
         COUNT(DISTINCT ip) as visitors
-      FROM "Visitor"
+      FROM Visitor
       GROUP BY DATE("createdAt")
       ORDER BY DATE("createdAt") ASC;
     `);
