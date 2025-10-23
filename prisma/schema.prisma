@@ -177,10 +177,17 @@ model Visitor {
 }
 
 model walimah_country {
-  id        Int      @id @default(autoincrement())
+  id        Int             @id @default(autoincrement())
   title     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  location  CountryLocation
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+enum CountryLocation {
+  North
+  Northeast
+  Northwest
 }
 
 enum Gender {
