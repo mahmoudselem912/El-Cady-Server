@@ -8,6 +8,7 @@ import {
 	AddCouponDto,
 	AddDrawDto,
 	AddUserDto,
+	AddWalimahCountryDto,
 	AddWalimahDashboardUserDto,
 	checkUserCodeDto,
 	ExportUploadBillsHistoryDto,
@@ -1663,5 +1664,20 @@ export class WalimahService {
       GROUP BY DATE("createdAt")
       ORDER BY DATE("createdAt") ASC;
     `);
+	}
+
+	async addCountry(dto: AddWalimahCountryDto) {
+		try {
+			const country = await this.prisma.walimah_country.create({
+				data: {
+					title: dto.title,
+					location: dto.location,
+				},
+			});
+
+			return country;
+		} catch (error) {
+			handleException(error, dto);
+		}
 	}
 }

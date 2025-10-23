@@ -6,6 +6,7 @@ import {
 	AddCouponDto,
 	AddDrawDto,
 	AddUserDto,
+	AddWalimahCountryDto,
 	AddWalimahDashboardUserDto,
 	checkUserCodeDto,
 	ExportUploadBillsHistoryDto,
@@ -267,6 +268,12 @@ export class WalimahController {
 	@Get('get-daily-traffic')
 	async getDaily() {
 		const data = await this.walimahService.getDailyUniqueVisitors();
+		return successfulResponse(data);
+	}
+
+	@Post('add-country')
+	async AddCountry(@Body() dto: AddWalimahCountryDto) {
+		const data = await this.walimahService.addCountry(dto);
 		return successfulResponse(data);
 	}
 

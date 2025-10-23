@@ -31,6 +31,8 @@ model walimah_users {
   bill_image          String?
   code                String?
   usedCode            String?
+  country_id          Int?
+  country             walimah_country?      @relation(fields: [country_id], references: [id])
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @default(now()) @updatedAt
   user_Coupons        user_Coupons[]
@@ -177,17 +179,24 @@ model Visitor {
 }
 
 model walimah_country {
-  id        Int             @id @default(autoincrement())
-  title     String
-  location  CountryLocation
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id            Int             @id @default(autoincrement())
+  title         String
+  location      CountryLocation
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  walimah_users walimah_users[]
 }
 
 enum CountryLocation {
   North
   Northeast
   Northwest
+  South
+  Southwest
+  SouthEast
+  East
+  West
+  Middle
 }
 
 enum Gender {
