@@ -1750,4 +1750,48 @@ export class WalimahService {
 			handleException(error, {});
 		}
 	}
+
+	async updateCountrySheet(dto: UploadCouponsSheetDto, file: MemoryStorageFile) {
+		try {
+			if (!file) {
+				throw new CustomBadRequestException('No file uploaded');
+			}
+
+			// 1️⃣ Parse Excel buffer
+			const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+			const sheetName = workbook.SheetNames[0]; // first sheet
+			const worksheet = workbook.Sheets[sheetName];
+
+			// 2️⃣ Convert to JSON
+			const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+			// header:1 → returns array of arrays instead of objects
+
+			// 3️⃣ Skip header row if exists
+			const dataRows = rows.slice(1);
+
+			// 4️⃣ Map rows into Prisma insert
+			dataRows.map(async (row: any[]) => {
+				const ExistingCountry = await this.prisma.walimah_country.findFirst({
+					where: {
+						id: +row[0]?.toString().trim(),
+					},
+				});
+
+				if (ExistingCountry) {
+					await this.prisma.walimah_country.update({
+						where: {
+							id: ExistingCountry.id,
+						},
+						data: {
+							title_en: row[0]?.toString().trim(),
+						},
+					});
+				}
+			});
+
+			return { success: true };
+		} catch (error) {
+			handleException(error, dto);
+		}
+	}
 }
