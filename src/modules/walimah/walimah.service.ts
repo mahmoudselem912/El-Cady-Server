@@ -1668,6 +1668,16 @@ export class WalimahService {
 
 	async addCountry(dto: AddWalimahCountryDto) {
 		try {
+			const ExistingCountry = await this.prisma.walimah_country.findFirst({
+				where: {
+					title: dto.title,
+				},
+			});
+
+			if (ExistingCountry) {
+				throw new CustomBadRequestException('Country with title already exist');
+			}
+			
 			const country = await this.prisma.walimah_country.create({
 				data: {
 					title: dto.title,
