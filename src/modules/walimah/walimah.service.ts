@@ -524,6 +524,18 @@ export class WalimahService {
 			} else {
 				const code = await this.generateUniqueUserCode();
 
+				if (dto.country_id) {
+					const ExistingCountry = await this.prisma.walimah_country.findFirst({
+						where: {
+							id: dto.country_id,
+						},
+					});
+
+					if (!ExistingCountry) {
+						throw new CustomNotFoundException('Country not found!');
+					}
+				}
+
 				const user = await this.prisma.walimah_users.create({
 					data: {
 						name: dto.name,
@@ -532,6 +544,7 @@ export class WalimahService {
 						number: dto.number.trim(),
 						code: code,
 						usedCode: dto.code,
+						country_id: dto.country_id ? dto.country_id : null,
 					},
 				});
 
@@ -1677,7 +1690,7 @@ export class WalimahService {
 			if (ExistingCountry) {
 				throw new CustomBadRequestException('Country with title already exist');
 			}
-			
+
 			const country = await this.prisma.walimah_country.create({
 				data: {
 					title: dto.title,

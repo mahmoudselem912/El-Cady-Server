@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class AddUserDto {
 	@ApiProperty({ example: 'name' })
@@ -29,4 +30,10 @@ export class AddUserDto {
 
 	@ApiProperty({ type: 'string', format: 'binary' })
 	file: any;
+
+	@ApiProperty({ example: 1, required: false })
+	@IsOptional()
+	@Transform(({ value }) => parseInt(value))
+	@IsNumber()
+	country_id: number;
 }
