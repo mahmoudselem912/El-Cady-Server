@@ -283,6 +283,12 @@ export class WalimahController {
 		return successfulResponse(data);
 	}
 
+	@Get('export-all-countries')
+	async ExportAllCountries() {
+		const data = await this.walimahService.exportAllCountries();
+		return successfulResponse(data);
+	}
+
 	private getClientIp(req: FastifyRequest): string {
 		// Handles proxies like Nginx or Cloudflare
 		const forwarded = req.headers['x-forwarded-for'];

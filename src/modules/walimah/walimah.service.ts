@@ -1519,8 +1519,9 @@ export class WalimahService {
 	async exportWalimahUsers() {
 		try {
 			const users = await this.prisma.walimah_users.findMany();
-			const headers = ['Name', 'Number', 'City', 'Email', 'Code', 'Register At'];
+			const headers = ['ID', 'Name', 'Number', 'City', 'Email', 'Code', 'Register At'];
 			const data = users.map((user) => [
+				user.id,
 				user.name ?? '',
 				user.number ?? '',
 				user.city ?? '',
@@ -1708,6 +1709,27 @@ export class WalimahService {
 		try {
 			const countries = await this.prisma.walimah_country.findMany();
 			return countries;
+		} catch (error) {
+			handleException(error, {});
+		}
+	}
+
+	async exportAllCountries() {
+		try {
+			const countries = await this.prisma.walimah_country.findMany();
+			const headers = ['ID', 'Name'];
+			const data = countries.map((country) => [country.id, country.title ?? '']);
+
+			const excelLink = await this.excelService.createExcelFile(
+				headers,
+				data,
+				`walimah-cities-${new Date().toISOString()}.xlsx`,
+			);
+
+			return {
+				message: 'Rewards exported successfully',
+				excelLink,
+			};
 		} catch (error) {
 			handleException(error, {});
 		}
