@@ -1670,14 +1670,30 @@ export class WalimahService {
 	}
 
 	async getDailyUniqueVisitors() {
-		return this.prisma.$queryRawUnsafe(`
-      SELECT 
-        DATE("createdAt") as date,
-        COUNT(DISTINCT ip) as visitors
-      FROM Visitor
-      GROUP BY DATE("createdAt")
-      ORDER BY DATE("createdAt") ASC;
-    `);
+		const visitors = await this.prisma.visitor.findMany({
+			select: {
+				createdAt: true,
+				ip: true,
+			},
+		});
+
+		// Group by date (yyyy-mm-dd) and count distinct IPs
+		const grouped = visitors.reduce(
+			(acc, v) => {
+				const dateKey = v.createdAt.toISOString().split('T')[0];
+				if (!acc[dateKey]) acc[dateKey] = new Set();
+				acc[dateKey].add(v.ip);
+				return acc;
+			},
+			{} as Record<string, Set<string>>,
+		);
+
+		return Object.entries(grouped)
+			.map(([date, ips]) => ({
+				date,
+				visitors: ips.size,
+			}))
+			.sort((a, b) => a.date.localeCompare(b.date));
 	}
 
 	async addCountry(dto: AddWalimahCountryDto) {
