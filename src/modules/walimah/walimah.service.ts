@@ -1457,9 +1457,23 @@ export class WalimahService {
 				},
 			});
 
-			const groupByCountries = countries.map((c) => ({
-				location: c.location,
-				count: c._count.walimah_users,
+			// Group and sum by location
+			const grouped = countries.reduce((acc, curr) => {
+				const { location } = curr;
+				const count = curr._count.walimah_users;
+
+				if (!acc[location]) {
+					acc[location] = 0;
+				}
+
+				acc[location] += count;
+				return acc;
+			}, {});
+
+			// Convert to array if you want a list format
+			const result = Object.entries(grouped).map(([location, total]) => ({
+				location,
+				total,
 			}));
 
 			return {
@@ -1478,7 +1492,7 @@ export class WalimahService {
 				pageItemsCount: dto.pageItemsCount || null,
 				totalPages: Math.ceil(leaderboard.length / limit),
 				totalUsers: leaderboard.length,
-				countriesStatistics: groupByCountries
+				countriesStatistics: result,
 			};
 		} catch (error) {
 			handleException(error, {});
