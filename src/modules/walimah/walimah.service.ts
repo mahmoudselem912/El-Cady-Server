@@ -1448,6 +1448,20 @@ export class WalimahService {
 				},
 			});
 
+			const countries = await this.prisma.walimah_country.findMany({
+				select: {
+					location: true,
+					_count: {
+						select: { walimah_users: true },
+					},
+				},
+			});
+
+			const groupByCountries = countries.map((c) => ({
+				location: c.location,
+				count: c._count.walimah_users,
+			}));
+
 			return {
 				totalCoupons: totalCoupons - totalAssignments,
 				totalCouponsAssigned,
@@ -1464,6 +1478,7 @@ export class WalimahService {
 				pageItemsCount: dto.pageItemsCount || null,
 				totalPages: Math.ceil(leaderboard.length / limit),
 				totalUsers: leaderboard.length,
+				countriesStatistics: groupByCountries
 			};
 		} catch (error) {
 			handleException(error, {});
