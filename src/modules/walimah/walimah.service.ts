@@ -1476,6 +1476,31 @@ export class WalimahService {
 				total,
 			}));
 
+			const visitors = await this.prisma.visitor.findMany({
+				select: {
+					createdAt: true,
+					ip: true,
+				},
+			});
+
+			// Group by date (yyyy-mm-dd) and count distinct IPs
+			const groupedVisitors = visitors.reduce(
+				(acc, v) => {
+					const dateKey = v.createdAt.toISOString().split('T')[0];
+					if (!acc[dateKey]) acc[dateKey] = new Set();
+					acc[dateKey].add(v.ip);
+					return acc;
+				},
+				{} as Record<string, Set<string>>,
+			);
+
+			const dailyStatistics =  Object.entries(groupedVisitors)
+				.map(([date, ips]) => ({
+					date,
+					visitors: ips.size,
+				}))
+				.sort((a, b) => a.date.localeCompare(b.date));
+
 			return {
 				totalCoupons: totalCoupons - totalAssignments,
 				totalCouponsAssigned,
@@ -1493,6 +1518,7 @@ export class WalimahService {
 				totalPages: Math.ceil(leaderboard.length / limit),
 				totalUsers: leaderboard.length,
 				countriesStatistics: result,
+				dailyStatistics
 			};
 		} catch (error) {
 			handleException(error, {});
