@@ -89,9 +89,9 @@ export class WalimahController {
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Post('add-coupon')
 	async AddCoupon(@Body() dto: AddCouponDto) {
 		const data = await this.walimahService.addCoupon(dto);
@@ -113,54 +113,54 @@ export class WalimahController {
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-dashboard-clients')
 	async GetDashboardClients(@Query() dto: GetDashboardClientsDto) {
 		const data = await this.walimahService.getDashboardClients(dto);
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-dashboard-coupons')
 	async GetDashboardCoupons(@Query() dto: GetDashboardClientsDto) {
 		const data = await this.walimahService.getDashboardCoupons(dto);
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Post('add-draw')
 	async AddDraw(@Body() dto: AddDrawDto) {
 		const data = await this.walimahService.addDraw(dto);
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-all-draws')
 	async GetAllDraws(@Query() dto: GetDashboardClientsDto) {
 		const data = await this.walimahService.getAllDraws(dto);
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Post('execute-draw')
 	async ExecuteDraw(@Body() dto: DrawIdentifier) {
 		const data = await this.walimahService.executeDraw(dto);
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Delete('delete-draw')
 	async DeleteDraw(@Query() dto: DrawIdentifier) {
 		const data = await this.walimahService.deleteDraw(dto);
@@ -176,81 +176,81 @@ export class WalimahController {
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-all-walimah-dashboard-users')
 	async GetAllWalimahDashboardUsers(@Query() dto: GetDashboardClientsDto) {
 		const data = await this.walimahService.getAllWalimahDashboardUsers(dto);
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Delete('delete-walimah-dashboard-user')
 	async DeleteWalimahDashboardUser(@Query() dto: UserIdentifier) {
 		const data = await this.walimahService.deleteWalimahDashboardUser(dto);
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-dashboard-user-profile')
 	async GetDashboardUserProfile(@GetUser() user: walimah_dashboard_user) {
 		const data = await this.walimahService.getDashboardUserProfile(user);
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-statistics')
 	async GetStatistics(@Query() dto: GetStatisticsDto, @GetUser() user: walimah_dashboard_user) {
 		const data = await this.walimahService.getStatitics(dto);
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Delete('delete-extra-coupons')
 	async DeleteExtraCoupons() {
 		const data = await this.walimahService.deleteExtraCoupons();
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Post('export-walimah-users')
 	async ExportWalimahUsers() {
 		const data = await this.walimahService.exportWalimahUsers();
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Get('get-users-by-coupon-company')
 	async GetUsersByCouponCompany(@Query() dto: GetUsersByCouponCompany) {
 		const data = await this.walimahService.getUsersByCouponCompany(dto);
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Get('give-me-now')
 	async GiveMeNow() {
 		const data = await this.walimahService.giveMeNow();
 		return successfulResponse(data);
 	}
 
-	@ApiBearerAuth()
-	@UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
-	@CoreUserType(CoreUserEnum.CLIENT)
+	// @ApiBearerAuth()
+	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
+	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Get('export-upload-bills-history')
 	async ExportUploadBillsHistory(@Query() dto: ExportUploadBillsHistoryDto) {
 		const data = await this.walimahService.exportUploadBillsHistory(dto);
