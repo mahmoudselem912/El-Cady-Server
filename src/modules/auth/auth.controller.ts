@@ -34,6 +34,7 @@ export class AuthController {
 			path: '/', // cookie valid for whole domain
 			maxAge: 60 * 60 * 24, // 1 day in seconds
 			sameSite: 'none',
+			domain: '.sawarwaerbah.com',
 		});
 
 		return successfulResponse('Success');
