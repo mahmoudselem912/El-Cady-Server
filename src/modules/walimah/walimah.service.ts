@@ -1494,7 +1494,7 @@ export class WalimahService {
 				{} as Record<string, Set<string>>,
 			);
 
-			const dailyStatistics =  Object.entries(groupedVisitors)
+			const dailyStatistics = Object.entries(groupedVisitors)
 				.map(([date, ips]) => ({
 					date,
 					visitors: ips.size,
@@ -1518,7 +1518,7 @@ export class WalimahService {
 				totalPages: Math.ceil(leaderboard.length / limit),
 				totalUsers: leaderboard.length,
 				countriesStatistics: result,
-				dailyStatistics
+				dailyStatistics,
 			};
 		} catch (error) {
 			handleException(error, {});
@@ -1766,6 +1766,7 @@ export class WalimahService {
 			const country = await this.prisma.walimah_country.create({
 				data: {
 					title: dto.title,
+					title_en: dto.title_en,
 					location: dto.location,
 				},
 			});

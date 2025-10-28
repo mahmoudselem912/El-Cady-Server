@@ -8,6 +8,11 @@ export class AddWalimahCountryDto {
 	@IsNotEmpty()
 	title: string;
 
+	@ApiProperty({ example: 'title' })
+	@IsString()
+	@IsNotEmpty()
+	title_en: string;
+
 	@ApiProperty({ example: CountryLocation.East })
 	@IsEnum(CountryLocation)
 	location: CountryLocation;
