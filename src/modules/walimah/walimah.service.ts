@@ -1883,7 +1883,7 @@ export class WalimahService {
 							id: ExistingUser.id,
 						},
 						data: {
-							country_id: row[3]?.toString().trim(),
+							country_id: +row[3]?.toString().trim(),
 						},
 					});
 				}
