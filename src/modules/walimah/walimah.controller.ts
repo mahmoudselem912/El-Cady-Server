@@ -297,6 +297,14 @@ export class WalimahController {
 		return successfulResponse(data);
 	}
 
+	@ApiConsumes('multipart/form-data')
+	@UseInterceptors(FileInterceptor('file'))
+	@Post('update-users-country')
+	async UpdateUsersCountry(@Body() dto: UploadCouponsSheetDto, @UploadedFile() file: MemoryStorageFile) {
+		const data = await this.walimahService.updateUsersCountry(dto, file);
+		return successfulResponse(data);
+	}
+
 	private getClientIp(req: FastifyRequest): string {
 		// Handles proxies like Nginx or Cloudflare
 		const forwarded = req.headers['x-forwarded-for'];
