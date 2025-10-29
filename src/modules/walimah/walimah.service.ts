@@ -12,6 +12,7 @@ import {
 	AddWalimahDashboardUserDto,
 	checkUserCodeDto,
 	ExportUploadBillsHistoryDto,
+	ExportWalimahUsersDto,
 	GetDashboardClientsDto,
 	GetStatisticsDto,
 	GetUsersByCouponCompany,
@@ -1625,9 +1626,33 @@ export class WalimahService {
 		}
 	}
 
-	async exportWalimahUsers() {
+	async exportWalimahUsers(dto: ExportWalimahUsersDto) {
 		try {
-			const users = await this.prisma.walimah_users.findMany();
+			const fromDate = dto.fromDate ? new Date(dto.fromDate) : new Date();
+			const toDate = dto.toDate ? new Date(dto.toDate) : new Date();
+
+			// Clone the dates before mutating
+			const fromLocal = new Date(fromDate);
+			fromLocal.setHours(0, 0, 0, 0);
+
+			const toLocal = new Date(toDate);
+			toLocal.setHours(23, 59, 59, 999);
+
+			// UTC difference in minutes (example: 180 = +03:00)
+			const utcOffsetMinutes = 180;
+
+			// Subtract offset to get UTC time
+			const fromDateUTC = new Date(fromLocal.getTime() - utcOffsetMinutes * 60 * 1000);
+			const toDateUTC = new Date(toLocal.getTime() - utcOffsetMinutes * 60 * 1000);
+
+			const users = await this.prisma.walimah_users.findMany({
+				where: {
+					createdAt: {
+						gte: fromDateUTC,
+						lte: toDateUTC,
+					},
+				},
+			});
 			const headers = ['ID', 'Name', 'Number', 'City', 'Email', 'Code', 'Register At'];
 			const data = users.map((user) => [
 				user.id,

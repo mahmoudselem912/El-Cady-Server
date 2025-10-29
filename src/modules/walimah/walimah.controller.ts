@@ -10,6 +10,7 @@ import {
 	AddWalimahDashboardUserDto,
 	checkUserCodeDto,
 	ExportUploadBillsHistoryDto,
+	ExportWalimahUsersDto,
 	GetDashboardClientsDto,
 	GetStatisticsDto,
 	GetUsersByCouponCompany,
@@ -225,8 +226,8 @@ export class WalimahController {
 	// @UseGuards(JwtGuard, AuthorizeCoreUsersGuard)
 	// @CoreUserType(CoreUserEnum.CLIENT)
 	@Post('export-walimah-users')
-	async ExportWalimahUsers() {
-		const data = await this.walimahService.exportWalimahUsers();
+	async ExportWalimahUsers(@Body() dto: ExportWalimahUsersDto) {
+		const data = await this.walimahService.exportWalimahUsers(dto);
 		return successfulResponse(data);
 	}
 
