@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class GetStatisticsDto {
 	@ApiProperty({ example: 1, required: false })
@@ -29,4 +29,14 @@ export class GetStatisticsDto {
 	@IsOptional()
 	@IsString()
 	sortOrder?: 'asc' | 'desc';
+
+	@ApiProperty({ example: '2025-09-09', required: false })
+	@IsDateString()
+	@IsOptional()
+	fromDate: Date;
+
+	@ApiProperty({ example: '2025-09-09', required: false })
+	@IsDateString()
+	@IsOptional()
+	toDate: Date;
 }

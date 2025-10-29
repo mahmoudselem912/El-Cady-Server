@@ -1515,6 +1515,41 @@ export class WalimahService {
 				}))
 				.sort((a, b) => a.date.localeCompare(b.date));
 
+			const fromDate = dto.fromDate ? new Date(dto.fromDate) : new Date();
+			const toDate = dto.toDate ? new Date(dto.toDate) : new Date();
+
+			// Clone the dates before mutating
+			const fromLocal = new Date(fromDate);
+			fromLocal.setHours(0, 0, 0, 0);
+
+			const toLocal = new Date(toDate);
+			toLocal.setHours(23, 59, 59, 999);
+
+			// UTC difference in minutes (example: 180 = +03:00)
+			const utcOffsetMinutes = 180;
+
+			// Subtract offset to get UTC time
+			const fromDateUTC = new Date(fromLocal.getTime() - utcOffsetMinutes * 60 * 1000);
+			const toDateUTC = new Date(toLocal.getTime() - utcOffsetMinutes * 60 * 1000);
+
+			const users = await this.prisma.walimah_users.findMany({
+				where: {
+					createdAt: {
+						gte: fromDateUTC,
+						lte: toDateUTC,
+					},
+				},
+			});
+
+			const uploadedBills = await this.prisma.walimah_users_bills.findMany({
+				where: {
+					createdAt: {
+						gte: fromDateUTC,
+						lte: toDateUTC,
+					},
+				},
+			});
+
 			return {
 				totalCoupons: totalCoupons - totalAssignments,
 				totalCouponsAssigned,
@@ -1533,6 +1568,8 @@ export class WalimahService {
 				totalUsers: leaderboard.length,
 				countriesStatistics: result,
 				dailyStatistics,
+				users,
+				uploadedBills
 			};
 		} catch (error) {
 			handleException(error, {});
