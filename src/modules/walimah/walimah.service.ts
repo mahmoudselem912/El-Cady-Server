@@ -1548,6 +1548,9 @@ export class WalimahService {
 						lte: toDateUTC,
 					},
 				},
+				include: {
+					walimah_user: true,
+				},
 			});
 
 			return {
@@ -1569,7 +1572,7 @@ export class WalimahService {
 				countriesStatistics: result,
 				dailyStatistics,
 				users,
-				uploadedBills
+				uploadedBills,
 			};
 		} catch (error) {
 			handleException(error, {});
