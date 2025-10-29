@@ -1451,29 +1451,43 @@ export class WalimahService {
 			const countries = await this.prisma.walimah_country.findMany({
 				select: {
 					location: true,
+					title: true,
 					_count: {
 						select: { walimah_users: true },
 					},
 				},
 			});
 
-			// Group and sum by location
-			const grouped = countries.reduce((acc, curr) => {
-				const { location } = curr;
+			// Group by location and include city information
+			const grouped = countries.reduce((acc: any, curr) => {
+				const { location, title } = curr;
 				const count = curr._count.walimah_users;
 
 				if (!acc[location]) {
-					acc[location] = 0;
+					acc[location] = {
+						total: 0,
+						cities: {},
+					};
 				}
 
-				acc[location] += count;
+				acc[location].total += count;
+
+				// Aggregate city data
+				if (title) {
+					if (!acc[location].cities[title]) {
+						acc[location].cities[title] = 0;
+					}
+					acc[location].cities[title] += count;
+				}
+
 				return acc;
 			}, {});
 
-			// Convert to array if you want a list format
-			const result = Object.entries(grouped).map(([location, total]) => ({
+			// Convert to array format with cities
+			const result = Object.entries(grouped).map(([location, data]: [string, any]) => ({
 				location,
-				total,
+				total: data.total,
+				cities: data.cities,
 			}));
 
 			const visitors = await this.prisma.visitor.findMany({
