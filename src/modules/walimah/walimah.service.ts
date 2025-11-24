@@ -16,6 +16,7 @@ import {
 	GetDashboardClientsDto,
 	GetStatisticsDto,
 	GetUsersByCouponCompany,
+	GetWalimahUserByNameDto,
 	UploadCouponsSheetDto,
 	UploadDto,
 	UserIdentifier,
@@ -1969,6 +1970,23 @@ export class WalimahService {
 			});
 
 			return { success: true };
+		} catch (error) {
+			handleException(error, dto);
+		}
+	}
+
+	async getWalimahUserByName(dto: GetWalimahUserByNameDto) {
+		try {
+			const users = await this.prisma.walimah_users.findMany({
+				where: {
+					name: dto.name,
+				},
+				include: {
+					walimah_users_bills: true,
+				},
+			});
+
+			return users;
 		} catch (error) {
 			handleException(error, dto);
 		}

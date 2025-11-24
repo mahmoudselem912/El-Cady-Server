@@ -14,6 +14,7 @@ import {
 	GetDashboardClientsDto,
 	GetStatisticsDto,
 	GetUsersByCouponCompany,
+	GetWalimahUserByNameDto,
 	UploadCouponsSheetDto,
 	UploadDto,
 	UserIdentifier,
@@ -303,6 +304,12 @@ export class WalimahController {
 	@Post('update-users-country')
 	async UpdateUsersCountry(@Body() dto: UploadCouponsSheetDto, @UploadedFile() file: MemoryStorageFile) {
 		const data = await this.walimahService.updateUsersCountry(dto, file);
+		return successfulResponse(data);
+	}
+
+	@Get('get-walimah-user-by-name')
+	async GetWalimahUserByName(@Query() dto: GetWalimahUserByNameDto) {
+		const data = await this.walimahService.getWalimahUserByName(dto);
 		return successfulResponse(data);
 	}
 
