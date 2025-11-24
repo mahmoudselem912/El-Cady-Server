@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Query, Req, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, Query, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { WalimahService } from './walimah.service';
 import { FileInterceptor, MemoryStorageFile, UploadedFile } from '@blazity/nest-file-fastify';
@@ -16,6 +16,7 @@ import {
 	GetStatisticsDto,
 	GetUsersByCouponCompany,
 	GetWalimahUserByNameDto,
+	UpdateBillsApprovedDto,
 	UploadCouponsSheetDto,
 	UploadDto,
 	UserIdentifier,
@@ -317,6 +318,12 @@ export class WalimahController {
 	@Get('get-bills-by-number')
 	async GetBillsByNumber(@Query() dto: GetBillsByNumberDto) {
 		const data = await this.walimahService.getBillsByNumber(dto);
+		return successfulResponse(data);
+	}
+
+	@Patch('update-bills-approved')
+	async UpdateBillsApproved(@Query() dto: UpdateBillsApprovedDto) {
+		const data = await this.walimahService.updateBillsApproved(dto);
 		return successfulResponse(data);
 	}
 

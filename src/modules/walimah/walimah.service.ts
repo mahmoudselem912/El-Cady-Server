@@ -18,6 +18,7 @@ import {
 	GetStatisticsDto,
 	GetUsersByCouponCompany,
 	GetWalimahUserByNameDto,
+	UpdateBillsApprovedDto,
 	UploadCouponsSheetDto,
 	UploadDto,
 	UserIdentifier,
@@ -2005,6 +2006,23 @@ export class WalimahService {
 			});
 
 			return bills;
+		} catch (error) {
+			handleException(error, dto);
+		}
+	}
+
+	async updateBillsApproved(dto: UpdateBillsApprovedDto) {
+		try {
+			const bill = await this.prisma.walimah_users_bills.update({
+				where: {
+					id: dto.bill_id,
+				},
+				data: {
+					approved: null,
+				},
+			});
+
+			return bill;
 		} catch (error) {
 			handleException(error, dto);
 		}
