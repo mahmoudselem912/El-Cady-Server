@@ -11,6 +11,7 @@ import {
 	checkUserCodeDto,
 	ExportUploadBillsHistoryDto,
 	ExportWalimahUsersDto,
+	GetBillsByNumberDto,
 	GetDashboardClientsDto,
 	GetStatisticsDto,
 	GetUsersByCouponCompany,
@@ -310,6 +311,12 @@ export class WalimahController {
 	@Get('get-walimah-user-by-name')
 	async GetWalimahUserByName(@Query() dto: GetWalimahUserByNameDto) {
 		const data = await this.walimahService.getWalimahUserByName(dto);
+		return successfulResponse(data);
+	}
+
+	@Get('get-bills-by-number')
+	async GetBillsByNumber(@Query() dto: GetBillsByNumberDto) {
+		const data = await this.walimahService.getBillsByNumber(dto);
 		return successfulResponse(data);
 	}
 

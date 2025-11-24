@@ -13,6 +13,7 @@ import {
 	checkUserCodeDto,
 	ExportUploadBillsHistoryDto,
 	ExportWalimahUsersDto,
+	GetBillsByNumberDto,
 	GetDashboardClientsDto,
 	GetStatisticsDto,
 	GetUsersByCouponCompany,
@@ -1987,6 +1988,23 @@ export class WalimahService {
 			});
 
 			return users;
+		} catch (error) {
+			handleException(error, dto);
+		}
+	}
+
+	async getBillsByNumber(dto: GetBillsByNumberDto) {
+		try {
+			const bills = await this.prisma.walimah_users_bills.findMany({
+				where: {
+					bill_number: dto.number,
+				},
+				include: {
+					walimah_user: true,
+				},
+			});
+
+			return bills;
 		} catch (error) {
 			handleException(error, dto);
 		}

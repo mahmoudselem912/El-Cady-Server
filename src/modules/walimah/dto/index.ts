@@ -13,3 +13,4 @@ export * from './export-upload-bills-history.dto';
 export * from './add-walimah-country.dto';
 export * from './export-walimah-users.dto'
 export * from './get-walimah-user-by-name.dto'
+export * from './get-bills-by-number.dto'
