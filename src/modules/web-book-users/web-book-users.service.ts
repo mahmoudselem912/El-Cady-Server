@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AddWebBookUserDto, SwapPhotoDto, UploadSwapPhotosDto, UserIdentifier } from './dto';
+import { AddWebBookUserDto, SwapPhotoDto, UpdateWebBookUserDto, UploadSwapPhotosDto, UserIdentifier } from './dto';
 import { handleException } from 'src/utils/error.handler';
 import { CustomNotFoundException } from 'src/utils/custom.exceptions';
 import { MemoryStorageFile } from '@blazity/nest-file-fastify';
@@ -111,6 +111,34 @@ export class WebBookUsersService {
 			});
 
 			return deletedUser;
+		} catch (error) {
+			handleException(error, dto);
+		}
+	}
+
+	async updateWebBookUser(dto: UpdateWebBookUserDto) {
+		try {
+			const user = await this.prisma.weBook_users.findFirst({
+				where: {
+					id: dto.user_id,
+				},
+			});
+
+			if (!user) {
+				throw new CustomNotFoundException('User not found!');
+			}
+
+			const updatedUser = await this.prisma.weBook_users.update({
+				where: {
+					id: dto.user_id,
+				},
+				data: {
+					...(dto.name && { name: dto.name }),
+					...(dto.text && { text: dto.text }),
+				},
+			});
+
+			return updatedUser;
 		} catch (error) {
 			handleException(error, dto);
 		}
