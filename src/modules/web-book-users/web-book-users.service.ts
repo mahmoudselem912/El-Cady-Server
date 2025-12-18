@@ -1,6 +1,13 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AddWebBookUserDto, SwapPhotoDto, UpdateWebBookUserDto, UploadSwapPhotosDto, UserIdentifier } from './dto';
+import {
+	AddWebBookUserDto,
+	SwapPhotoDto,
+	UpdateWebBookUserDto,
+	UpdateWebBookUserImageDto,
+	UploadSwapPhotosDto,
+	UserIdentifier,
+} from './dto';
 import { handleException } from 'src/utils/error.handler';
 import { CustomNotFoundException } from 'src/utils/custom.exceptions';
 import { MemoryStorageFile } from '@blazity/nest-file-fastify';
@@ -137,6 +144,56 @@ export class WebBookUsersService {
 					...(dto.text && { text: dto.text }),
 				},
 			});
+
+			return updatedUser;
+		} catch (error) {
+			handleException(error, dto);
+		}
+	}
+
+	async updateWebBookUserImage(dto: UpdateWebBookUserImageDto, file: MemoryStorageFile) {
+		try {
+			const user = await this.prisma.weBook_users.findFirst({
+				where: {
+					id: dto.user_id,
+				},
+			});
+
+			if (!user) {
+				throw new CustomNotFoundException('User not found!');
+			}
+
+			const ExistingClient = await this.prisma.client.findFirst({
+				where: {
+					id: user.client_id,
+				},
+			});
+
+			const nestedFolder = `users/user-${ExistingClient.name.replaceAll(' ', '')}`;
+			const filesWithPathAndURl = await addPathToFiles([file], 'ElCady', nestedFolder);
+
+			const updatedUser = await this.prisma.weBook_users.update({
+				where: {
+					id: dto.user_id,
+				},
+				data: {
+					image: filesWithPathAndURl[0].fileurl,
+				},
+			});
+
+			if (file)
+				try {
+					await saveFilesOnServer(filesWithPathAndURl);
+				} catch (error) {
+					await this.prisma.weBook_users.delete({
+						where: { id: user.id },
+					});
+
+					throw new InternalServerErrorException(
+						'Error saving files while creating User',
+						(error as Error).message,
+					);
+				}
 
 			return updatedUser;
 		} catch (error) {

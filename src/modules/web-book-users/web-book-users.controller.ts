@@ -8,7 +8,7 @@ import {
 	UploadedFile,
 	UploadedFiles,
 } from '@blazity/nest-file-fastify';
-import { AddWebBookUserDto, SwapPhotoDto, UpdateWebBookUserDto, UploadSwapPhotosDto, UserIdentifier } from './dto';
+import { AddWebBookUserDto, SwapPhotoDto, UpdateWebBookUserDto, UpdateWebBookUserImageDto, UploadSwapPhotosDto, UserIdentifier } from './dto';
 import { successfulResponse } from 'src/utils/response.handler';
 import { ClientIdentifier } from '../clients/dto';
 import { Response } from 'express';
@@ -47,6 +47,14 @@ export class WebBookUsersController {
 	@Patch('update-webBook-user')
 	async UpdateWebBookUser(@Query() dto: UpdateWebBookUserDto) {
 		const data = await this.webBookUsersService.updateWebBookUser(dto);
+		return successfulResponse(data);
+	}
+
+	@ApiConsumes('multipart/form-data')
+	@UseInterceptors(FileInterceptor('image'))
+	@Patch('update-webBook-user-image')
+	async UpdateWebBookUserImage(@Body() dto: UpdateWebBookUserImageDto, @UploadedFile() file: MemoryStorageFile) {
+		const data = await this.webBookUsersService.updateWebBookUserImage(dto, file);
 		return successfulResponse(data);
 	}
 
